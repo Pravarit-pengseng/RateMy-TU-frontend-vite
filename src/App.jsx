@@ -23,6 +23,8 @@ import UserRoute from "./Routes/userRoute";
 import { login } from "./Store/userSlice";
 import NotFound404 from "./Components/Pages/NotFound404";
 import HeaderBar from "./Layout/headerBar";
+import EditSubject from "./Components/Pages/Course/EditSubject";
+import AddSubject from "./Components/Pages/Course/AddSubject";
 
 function App() {
   const dispatch = useDispatch();
@@ -72,6 +74,24 @@ function App() {
               <>
                 <HeaderBar />
                 <FormSubject />
+              </>
+            }
+          />
+          <Route
+            path="/editsubject"
+            element={
+              <>
+                <HeaderBar />
+                <EditSubject />
+              </>
+            }
+          />
+          <Route
+            path="/addsubject"
+            element={
+              <>
+                <HeaderBar />
+                <AddSubject />
               </>
             }
           />
