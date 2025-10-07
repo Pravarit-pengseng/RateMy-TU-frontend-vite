@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
-const EditSubject = () => {
+const AddSubject = () => {
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
   const [instructor, setInstructor] = useState("");
@@ -14,7 +14,7 @@ const EditSubject = () => {
           <ChevronLeftIcon className="h-6 w-6 cursor-pointer hover:text-gray-300" 
           strokeWidth={5} 
           />
-          <h1 className="text-xl font-semibold">แก้ไขรายวิชา</h1>
+          <h1 className="text-xl font-semibold">เพิ่มรายวิชา</h1>
         </div>
 
         {/* Form Card */}
@@ -89,4 +89,4 @@ const EditSubject = () => {
   );
 };
 
-export default EditSubject;
+export default AddSubject;
