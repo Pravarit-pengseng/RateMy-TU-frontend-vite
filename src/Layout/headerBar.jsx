@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../Store/userSlice";
 import "@fontsource/pixelify-sans";
@@ -31,6 +31,7 @@ function HeaderBar() {
   const { username } = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [userOpen, setUserOpen] = useState(false);
 
@@ -71,11 +72,23 @@ function HeaderBar() {
 
           {/* Right side (auth / user) */}
           <div className="flex items-center gap-5">
-            {pages.map((p, i) => (
-              <Link key={i} to={p.to} className="text-black hover:opacity-70">
-                {p.title}
-              </Link>
-            ))}
+            {pages.map((p, i) => {
+              const active =
+                location.pathname === p.to ||
+                (p.to === "/course" && location.pathname.startsWith("/course"));
+              return (
+                <Link
+                  key={i}
+                  to={p.to}
+                  className={`text-black ${active
+                    ? "font-bold underline underline-offset-8 decoration-2"
+                    : "hover:opacity-70"
+                    }`}
+                >
+                  {p.title}
+                </Link>
+              );
+            })}
             {user.user.length === 0 ? (
               <div className="hidden md:flex items-center gap-2">
                 {authen.map((a, i) => (
@@ -96,23 +109,29 @@ function HeaderBar() {
                   onClick={() => setUserOpen((v) => !v)}
                   aria-haspopup="menu"
                 >
-                  <span className="sr-only">Open user menu</span> 
+                  <span className="sr-only">Open user menu</span>
                 </button>
                 {userOpen && (
                   <div
                     className="absolute right-0 mt-2 w-40 rounded-md bg-white shadow-md border"
                     onMouseLeave={() => setUserOpen(false)}
                   >
-                    {pages.map((p, i) => (
-                      <Link
-                        key={i}
-                        to={p.to}
-                        className="block px-3 py-2 hover:bg-black/5"
-                        onClick={() => setUserOpen(false)}
-                      >
-                        {p.title}
-                      </Link>
-                    ))}
+                    {/* {pages.map((p, i) => {
+                      const active =
+                        location.pathname === p.to ||
+                        (p.to === "/course" && location.pathname.startsWith("/course"));
+                      return (
+                        <Link
+                          key={i}
+                          to={p.to}
+                          className={`block px-3 py-2 hover:bg-black/5 ${active ? "font-bold underline underline-offset-4" : ""
+                            }`}
+                          onClick={() => setUserOpen(false)}
+                        >
+                          {p.title}
+                        </Link>
+                      );
+                    })} */}
                     {settings.map((s, i) =>
                       s.title === "Logout" ? (
                         <button

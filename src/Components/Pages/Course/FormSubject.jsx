@@ -64,9 +64,9 @@ const FormSubject = () => {
   }
 
   return (
-    <div className="bg-[#2d2f3b] h-screen w-screen overflow-y-auto">
+    <div className="bg-[#2d2f3b] min-h-screen overflow-x-hidden">
       <div className="max-w-[1200px] mx-auto px-4 py-6">
-        <div className="flex justify-center my-3">
+        <div className="flex justify-center mb-6">
           <Search />
         </div>
 
