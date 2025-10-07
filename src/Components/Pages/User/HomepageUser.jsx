@@ -40,7 +40,7 @@ function HomepageUser() {
           <div className="bg-[url('/assets/home-bg.png')] bg-cover bg-center bg-no-repeat w-full min-h-[424px] py-12 sm:py-12">
            <div className="text-center">
              <h1 className="text-white font-bold mt-1 sm:mt-8 mb-1 sm:mb-8 text-[32px] sm:text-[48px] md:text-[64px] lg:text-[80px]">
-              Find your <ins>FAVORITE</ins> subject
+              Find your <ins>FAVORITE </ins> subject
             </h1>
             <p className="text-white mb-3 sm:mb-5 px-2 sm:px-10">
               Explore friends review, rating and professor to make informed
