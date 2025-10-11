@@ -6,8 +6,7 @@ import {
   saveSearchHistory,
   increasePopularity,
 } from "../../Function/search";
-import { MagnifyingGlassIcon , PlusCircleIcon} from "@heroicons/react/24/solid";
-
+import { MagnifyingGlassIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 
 const Search = ({ onSearch }) => {
   const dispatch = useDispatch();
@@ -103,7 +102,7 @@ const Search = ({ onSearch }) => {
 
   return (
     <div
-      className="relative w-[450px]"
+      className="relative w-[450px] z-0"
       ref={searchRef}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) handleClickAway();
@@ -130,7 +129,7 @@ const Search = ({ onSearch }) => {
           <button
             type="button"
             className="text-white ml-2"
-            onClick={() => navigate("/add-subject")}
+            onClick={() => navigate("/addsubject")}
             title="Add Subject"
           >
             <PlusCircleIcon className="h-6 w-6 text-gray-500" />
