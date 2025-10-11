@@ -22,9 +22,10 @@ import UserRoute from "./Routes/userRoute";
 //function
 import { login } from "./Store/userSlice";
 import NotFound404 from "./Components/Pages/NotFound404";
-import HeaderBar from "./Layout/headerBar";
+
 import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
+import HeaderBar from "./Layout/HeaderBar";
 
 function App() {
   const dispatch = useDispatch();
@@ -77,24 +78,7 @@ function App() {
               </>
             }
           />
-          <Route
-            path="/editsubject"
-            element={
-              <>
-                <HeaderBar />
-                <EditSubject />
-              </>
-            }
-          />
-          <Route
-            path="/addsubject"
-            element={
-              <>
-                <HeaderBar />
-                <AddSubject />
-              </>
-            }
-          />
+
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
 
@@ -103,24 +87,33 @@ function App() {
             path="/user"
             element={
               <UserRoute>
-                <HomepageUser />
+                {/* <HomepageUser /> */}
               </UserRoute>
             }
           />
 
           {/* admin */}
-          {/* <Route
-            path="/admin"
+          
+          {/* edit Subject */}
+          <Route
+            path="/edit-course/:courseCode/:id"
             element={
               <AdminRoute>
-                <HomepageAdmin />
+                <HeaderBar />
+                <EditSubject />
               </AdminRoute>
             }
-          /> */}
+          />
 
+          {/* Add subject */}
           <Route
-            path="/edit/:id"
-            element={<AdminRoute>{/* <EditSubject /> */}</AdminRoute>}
+            path="/addsubject"
+            element={
+              <AdminRoute>
+                <HeaderBar />
+                <AddSubject />
+              </AdminRoute>
+            }
           />
         </Routes>
       </>
