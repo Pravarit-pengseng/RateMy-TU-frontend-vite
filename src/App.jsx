@@ -25,7 +25,8 @@ import NotFound404 from "./Components/Pages/NotFound404";
 
 import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
-import HeaderBar from "./Layout/HeaderBar";
+import HeaderBar from "./Layout/headerBar";
+import MyProfile from "./Components/Pages/Profile/MyProfile";
 
 function App() {
   const dispatch = useDispatch();
@@ -66,6 +67,15 @@ function App() {
               <>
                 <HeaderBar />
                 <HomepageUser />
+              </>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <>
+                <HeaderBar />
+                <MyProfile />
               </>
             }
           />

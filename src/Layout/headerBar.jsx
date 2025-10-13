@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../Store/userSlice";
+import { getCurrentProfile } from "../Function/profile";
 
 // icons
 import {
@@ -41,6 +42,31 @@ function HeaderBar() {
 
   const [userOpen, setUserOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    username: "",
+    profileImg: "",
+  });
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user?.token) {
+        try {
+          const res = await getCurrentProfile(user.token);
+          const data = res.data;
+          setUserProfile({
+            username: data.username || "",
+            profileImg: data.profileImg
+              ? `${import.meta.env.VITE_APP_API.replace(/\/api$/, "")}${
+                  data.profileImg
+                }`
+              : "",
+          });
+        } catch (err) {
+          console.error("Load user profile error:", err);
+        }
+      }
+    };
+    fetchProfile();
+  }, [user]);
 
   const handlelogout = () => {
     setUserOpen(false);
@@ -106,11 +132,21 @@ function HeaderBar() {
             ) : (
               <div className="relative">
                 <button
-                  className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center"
+                  className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
                   onClick={() => setUserOpen((v) => !v)}
                 >
                   <span className="sr-only">Open user menu</span>
+                  {userProfile.profileImg ? (
+                    <img
+                      src={userProfile.profileImg}
+                      alt="User"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl">👤</span>
+                  )}
                 </button>
+
                 {userOpen && (
                   <div
                     className="absolute right-0 mt-2 w-40 rounded-md bg-white shadow-md border"
