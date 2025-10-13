@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import HeaderBar from "../Layout/HeaderBar";
-import NotFound404 from "../components/pages/NotFound404";
+import NotFound404 from "../components/Pages/NotFound404";
 
 const UserRoute = ({ children }) => {
   const { user } = useSelector((state) => ({ ...state }));
