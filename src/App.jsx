@@ -27,6 +27,7 @@ import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
 import HeaderBar from "./Layout/headerBar";
 import MyProfile from "./Components/Pages/Profile/MyProfile";
+import ReviewSub from "./Components/Pages/User/reviewSub";
 
 function App() {
   const dispatch = useDispatch();
@@ -67,6 +68,15 @@ function App() {
               <>
                 <HeaderBar />
                 <HomepageUser />
+              </>
+            }
+          />
+          <Route
+            path="/course/:courseCode/:id"
+            element={
+              <>
+                <HeaderBar />
+                <ReviewSub />
               </>
             }
           />
