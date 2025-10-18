@@ -27,7 +27,7 @@ import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
 import HeaderBar from "./Layout/headerBar";
 import MyProfile from "./Components/Pages/Profile/MyProfile";
-import ReviewSub from "./Components/Pages/User/reviewSub";
+import ReviewSub from "./Components/Pages/User/ReviewSub";
 
 function App() {
   const dispatch = useDispatch();
@@ -105,15 +105,11 @@ function App() {
           {/* user */}
           <Route
             path="/user"
-            element={
-              <UserRoute>
-                {/* <HomepageUser /> */}
-              </UserRoute>
-            }
+            element={<UserRoute>{/* <HomepageUser /> */}</UserRoute>}
           />
 
           {/* admin */}
-          
+
           {/* edit Subject */}
           <Route
             path="/edit-course/:courseCode/:id"
