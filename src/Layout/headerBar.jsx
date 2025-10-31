@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../Store/userSlice";
+import { getCurrentProfile } from "../Function/profile";
 
 // icons
 import {
@@ -9,43 +10,64 @@ import {
   ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/solid";
 
-const pages = [
-  { title: "Home", to: "/" },
-  { title: "Course", to: "/course" },
-];
-
-const authen = [
-  {
-    title: "Register",
-    icon: <UserPlusIcon className="w-5 h-5" />,
-    to: "/register",
-  },
-  {
-    title: "Login",
-    icon: <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />,
-    to: "/login",
-  },
-];
-
-const settings = [
-  { title: "Profile", to: "/profile" },
-  { title: "Logout", to: "/" },
-];
-
 function HeaderBar() {
   const { user } = useSelector((state) => state.user);
   const { username } = useSelector((state) => state.user?.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const pages = [
+    { title: "Home", to: "/" },
+    { title: "Course", to: "/course" },
+  ];
+
+  const authen = [
+    {
+      title: "Register",
+      icon: <UserPlusIcon className="w-5 h-5" />,
+      to: "/register",
+    },
+    {
+      title: "Login",
+      icon: <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />,
+      to: "/login",
+    },
+  ];
+  const settings = [
+    { title: "Profile", to: `/EditProfile/${user.username}` },
+    { title: "Logout", to: "/" },
+  ];
 
   const [userOpen, setUserOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    username: "",
+    profileImage: "",
+  });
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user?.token) {
+        try {
+          const res = await getCurrentProfile(user.token);
+          const data = res.data;
+          setUserProfile({
+            username: data.username || "",
+            profileImage: data.profileImage
+              ? data.profileImage.url
+              : "",
+          });
+        } catch (err) {
+          console.error("Load user profile error:", err);
+        }
+      }
+    };
+    fetchProfile();
+  }, [user]);
 
   const handlelogout = () => {
     setUserOpen(false);
     dispatch(logout());
-    navigate(0);
+    navigate("/");
   };
 
   return (
@@ -106,11 +128,21 @@ function HeaderBar() {
             ) : (
               <div className="relative">
                 <button
-                  className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center"
+                  className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
                   onClick={() => setUserOpen((v) => !v)}
                 >
                   <span className="sr-only">Open user menu</span>
+                  {userProfile.profileImage ? (
+                    <img
+                      src={userProfile.profileImage}
+                      alt="User"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl">👤</span>
+                  )}
                 </button>
+
                 {userOpen && (
                   <div
                     className="absolute right-0 mt-2 w-40 rounded-md bg-white shadow-md border"

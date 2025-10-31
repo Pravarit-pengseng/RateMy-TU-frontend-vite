@@ -26,6 +26,11 @@ import NotFound404 from "./Components/Pages/NotFound404";
 import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
 import HeaderBar from "./Layout/HeaderBar";
+import MyProfile from "./Components/Pages/Profile/MyProfile";
+import ReviewSub from "./Components/Pages/User/ReviewSub";
+import ImageUpload from "./Components/ImageUpload";
+import EditProfile from "./Components/Pages/Profile/EditProfile";
+import ViewProfile from "./Components/Pages/Profile/ViewProfile";
 
 function App() {
   const dispatch = useDispatch();
@@ -60,6 +65,35 @@ function App() {
               />
             }
           />
+
+          <Route
+            path="/upload"
+            element={
+              <>
+                <HeaderBar />
+                <ImageUpload />
+              </>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <>
+                <HeaderBar />
+                <MyProfile />
+              </>
+            }
+          />
+          <Route
+            path="/ViewProfile/:username"
+            element={
+              <>
+                <HeaderBar />
+                <ViewProfile />
+              </>
+            }
+          />
+
           <Route
             path="/"
             element={
@@ -69,6 +103,16 @@ function App() {
               </>
             }
           />
+          <Route
+            path="/course/:courseCode/:id"
+            element={
+              <>
+                <HeaderBar />
+                <ReviewSub />
+              </>
+            }
+          />
+
           <Route
             path="/course"
             element={
@@ -84,16 +128,16 @@ function App() {
 
           {/* user */}
           <Route
-            path="/user"
+            path="/EditProfile/:username"
             element={
               <UserRoute>
-                {/* <HomepageUser /> */}
+                <EditProfile />
               </UserRoute>
             }
           />
 
           {/* admin */}
-          
+
           {/* edit Subject */}
           <Route
             path="/edit-course/:courseCode/:id"
