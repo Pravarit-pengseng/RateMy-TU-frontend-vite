@@ -201,7 +201,7 @@ export default function EditProfile() {
       console.log("UPDATED DATA: ", updatedUser);
       setTimeout(() => {
         window.location.reload();
-      }, 2500);
+      }, 5000);
       toast.success("บันทึกข้อมูลสำเร็จ");
 
       setImageFile(null); // เคลียร์ไฟล์ที่เลือกไว้
