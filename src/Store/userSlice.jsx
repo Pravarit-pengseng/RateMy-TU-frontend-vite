@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: [], // ข้อมูลผู้ใช้
-  profileImg: "", // เพิ่มสำหรับเก็บรูปโปรไฟล์
+  profileImage: "", // เพิ่มสำหรับเก็บรูปโปรไฟล์
 };
 
 export const userSlice = createSlice({
@@ -12,11 +12,11 @@ export const userSlice = createSlice({
     login: (state, action) => {
       state.user = action.payload;
       // ถ้ามี profileImg จาก backend
-      state.profileImg = action.payload.profileImg || "";
+      state.profileImage = action.payload.profileImage || "";
     },
     logout: (state) => {
       state.user = [];
-      state.profileImg = "";
+      state.profileImage = "";
       localStorage.clear();
     },
     incrementByAmount: (state, action) => {
@@ -24,7 +24,7 @@ export const userSlice = createSlice({
     },
     updateProfileImg: (state, action) => {
       if (state.user) {
-        state.user.profileImg = action.payload;
+        state.user.profileImage = action.payload;
       }
     },
   },
