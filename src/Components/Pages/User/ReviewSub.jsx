@@ -70,30 +70,22 @@ function ReviewSub() {
   const [userProfiles, setUserProfiles] = useState({}); // เก็บ profile ของแต่ละ user
 
   // Debug: ดู userProfiles state เมื่อเปลี่ยน
-  useEffect(() => {
-    console.log("🔄 [State Change] userProfiles updated:", userProfiles);
-  }, [userProfiles]);
+ 
   const loadUserProfile = async (username) => {
-    console.log("🔍 [loadUserProfile] Starting for:", username);
 
     try {
-      console.log("📡 [API] Fetching profile for:", username);
       const response = await axios.get(`${API}/profile/${username}`);
-      console.log("✅ [API Response] for", username, ":", response.data);
 
       if (response.data) {
         const profileImageUrl = response.data.profileImage;
-        console.log("💾 [Saving] Username:", username, "-> ProfileImage:", profileImageUrl);
 
         // ใช้ callback เพื่อตรวจสอบว่ามีใน cache แล้วหรือไม่
         setUserProfiles(prev => {
           // ถ้ามีแล้ว ไม่ต้อง update
           if (prev[username]) {
-            console.log("✅ [Cache] Already in state for:", username);
             return prev;
           }
 
-          console.log("✅ [Saved] Profile saved to state");
           return {
             ...prev,
             [username]: profileImageUrl || null
@@ -101,7 +93,7 @@ function ReviewSub() {
         });
       }
     } catch (error) {
-      console.error("❌ [Error] Failed to load profile for:", username, "->", error.message);
+      console.error("  Failed to load profile for:", username, "->", error.message);
       // ถ้าดึงไม่ได้ให้เก็บเป็น null
       setUserProfiles(prev => {
         if (prev[username] !== undefined) return prev;
@@ -148,7 +140,6 @@ function ReviewSub() {
 
   useEffect(() => {
     const loadAllProfiles = async () => {
-      console.log("🚀 [useEffect] Starting to load all profiles");
       const usernames = new Set();
 
       // รวบรวม username จาก review comments
@@ -173,26 +164,19 @@ function ReviewSub() {
         }
       });
 
-      console.log("📋 [useEffect] Found usernames:", Array.from(usernames));
 
       // โหลด profile ของแต่ละคน (เฉพาะที่ยังไม่เคยโหลด)
       usernames.forEach(username => {
         if (!loadedUsersRef.current.has(username)) {
-          console.log("🆕 [useEffect] Loading new user:", username);
           loadedUsersRef.current.add(username);
           loadUserProfile(username);
-        } else {
-          console.log("⏭️ [useEffect] Skipping (already loaded):", username);
-        }
+        } 
       });
     };
 
     if (reviews.length > 0 || questions.length > 0) {
-      console.log("✅ [useEffect] Triggering loadAllProfiles - Reviews:", reviews.length, "Questions:", questions.length);
       loadAllProfiles();
-    } else {
-      console.log("⏸️ [useEffect] No reviews or questions yet");
-    }
+    } 
   }, [reviews, questions]);
 
 
