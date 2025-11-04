@@ -1,253 +1,813 @@
-// ReviewSub.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { getCurrentProfile } from "../../../Function/profile";
 import {
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
   PaperAirplaneIcon,
-  PencilIcon,
   ChevronDoubleDownIcon,
   ChevronDoubleUpIcon,
   HeartIcon,
   FaceFrownIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
+import {
+  HeartIcon as HeartIconSolid,
+  FaceFrownIcon as FaceFrownIconSolid,
+} from "@heroicons/react/24/solid";
+import { useNavigate } from "react-router-dom";
+
+const API = import.meta.env.VITE_APP_API;
 
 function ReviewSub() {
+  const { courseCode, id } = useParams();
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+
   const [isOpen, setIsOpen] = useState(true);
-  const [openId, setOpenId] = useState(null); //  เก็บ ID ของโพสต์ที่เปิดอยู่
+  const [openId, setOpenId] = useState(null);
   const [activeTab, setActiveTab] = useState("review");
-  // const [userReaction, setUserReaction] = useState(null); // 'like' หรือ 'dislike'
 
-  const handleLike = (reviewId) => {
-    setReactions((prev) => {
-      const current = prev[reviewId];
-      const isLiked = current.userReaction === "like";
+  // --- 2. State สำหรับแก้ไข comment ---
+  const [editingReviewComment, setEditingReviewComment] = useState(null);
+  const [editingQuestionComment, setEditingQuestionComment] = useState(null);
+  const [editCommentText, setEditCommentText] = useState("");
 
-      return {
-        ...prev,
-        [reviewId]: {
-          ...current,
-          likes: current.likes + (isLiked ? -1 : 1),
-          dislikes:
-            current.userReaction === "dislike"
-              ? current.dislikes - 1
-              : current.dislikes,
-          userReaction: isLiked ? null : "like",
-        },
-      };
-    });
-  };
+  const [course, setCourse] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [questions, setQuestions] = useState([]);
 
-  const handleDislike = (reviewId) => {
-    setReactions((prev) => {
-      const current = prev[reviewId];
-      const isDisliked = current.userReaction === "dislike";
-
-      return {
-        ...prev,
-        [reviewId]: {
-          ...current,
-          dislikes: current.dislikes + (isDisliked ? -1 : 1),
-          likes:
-            current.userReaction === "like" ? current.likes - 1 : current.likes,
-          userReaction: isDisliked ? null : "dislike",
-        },
-      };
-    });
-  };
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      username: "user123",
-      postDate: "2024-01-15",
-      courseName: "Computer Science 101",
-      professorName: "Dr. Smith",
-      comment: "วิชานี้เนื้อหาดีมาก แต่ค่อนข้างยาก",
-      sec: "760001", //เซค
-      term: "1", //ภาคเรียน
-      year: "2567", //ปีการศึกษา
-      grade: "B+",
-      likes: 0,
-      dislikes: 0,
-      ratings: {
-        homework: 4,
-        interest: 3,
-        teaching: 5,
-        rating: 3, //คะแนนรีวิว
-      },
-      replies: [
-        {
-          username: "student456",
-          comment: "ตรงกับที่ผมคิดเลย",
-          date: "2024-01-16",
-        },
-      ],
-    },
-    {
-      id: 2,
-      username: "study_king",
-      postDate: "2024-01-10",
-      courseName: "Mathematics 202",
-      professorName: "Dr. Johnson",
-      comment: "อาจารย์สอนเข้าใจง่าย งานบ้านพอเหมาะ",
-      sec: "760001", //เซค
-      term: "1", //ภาคเรียน
-      year: "2568", //ปีการศึกษา
-      grade: "A",
-      ratings: {
-        homework: 5,
-        interest: 4,
-        teaching: 5,
-        rating: 5, //คะแนนรีวิว
-      },
-      replies: [],
-    },
-  ]);
-  // const [likes, setLikes] = useState(reviews.likes || 0);
-  // const [dislikes, setDislikes] = useState(reviews.dislikes || 0);
-  const [reactions, setReactions] = useState(() =>
-    reviews.reduce((acc, review) => {
-      acc[review.id] = {
-        likes: review.likes || 0,
-        dislikes: review.dislikes || 0,
-        userReaction: null,
-      };
-      return acc;
-    }, {})
-  );
-  const [questions, setQuestions] = useState([
-    {
-      id: 1,
-      username: "curious_student",
-      question: "วิชานี้ติด A เท่าไรคะ",
-      replies: [
-        {
-          username: "senior_student",
-          answer: "ประมาณ 30% ของชั้นเรียนได้ A ครับ",
-          date: "2024-01-12",
-        },
-      ],
-    },
-    {
-      id: 2,
-      username: "new_student",
-      question: "สอบยากไหมครับ",
-      replies: [],
-    },
-  ]);
-
-  const [newReview, setNewReview] = useState({
+  // --- 3. (แก้ไข) State สำหรับฟอร์มรีวิว (เพิ่ม _id) ---
+  const initialReviewState = {
+    _id: null,
     homework: 0,
     interest: 0,
     teaching: 0,
     comment: "",
-    sec: "", //เซค
-    term: "", //ภาคเรียน
-    year: "", //ปีการศึกษา
+    sec: "",
+    term: "",
+    year: "",
     grade: "",
-    rating: 0, //คะแนนรีวิว
-  });
+    rating: 0,
+  };
+  const [newReview, setNewReview] = useState(initialReviewState);
 
-  const [newQuestion, setNewQuestion] = useState("");
+  // --- 4. (แก้ไข) State สำหรับฟอร์มคำถาม (เพิ่ม _id) ---
+  const initialQuestionState = {
+    _id: null,
+    postText: "",
+  };
+  const [newQuestion, setNewQuestion] = useState(initialQuestionState);
+
   const [replyContents, setReplyContents] = useState({});
+  const [expandedComments, setExpandedComments] = useState({});
+  const [userProfiles, setUserProfiles] = useState({}); // เก็บ profile ของแต่ละ user
 
+  // Debug: ดู userProfiles state เมื่อเปลี่ยน
+  useEffect(() => {
+    console.log("🔄 [State Change] userProfiles updated:", userProfiles);
+  }, [userProfiles]);
+  const loadUserProfile = async (username) => {
+    console.log("🔍 [loadUserProfile] Starting for:", username);
+
+    try {
+      console.log("📡 [API] Fetching profile for:", username);
+      const response = await axios.get(`${API}/profile/${username}`);
+      console.log("✅ [API Response] for", username, ":", response.data);
+
+      if (response.data) {
+        const profileImageUrl = response.data.profileImage;
+        console.log("💾 [Saving] Username:", username, "-> ProfileImage:", profileImageUrl);
+
+        // ใช้ callback เพื่อตรวจสอบว่ามีใน cache แล้วหรือไม่
+        setUserProfiles(prev => {
+          // ถ้ามีแล้ว ไม่ต้อง update
+          if (prev[username]) {
+            console.log("✅ [Cache] Already in state for:", username);
+            return prev;
+          }
+
+          console.log("✅ [Saved] Profile saved to state");
+          return {
+            ...prev,
+            [username]: profileImageUrl || null
+          };
+        });
+      }
+    } catch (error) {
+      console.error("❌ [Error] Failed to load profile for:", username, "->", error.message);
+      // ถ้าดึงไม่ได้ให้เก็บเป็น null
+      setUserProfiles(prev => {
+        if (prev[username] !== undefined) return prev;
+        return {
+          ...prev,
+          [username]: null
+        };
+      });
+    }
+  };
+  const [userProfile, setUserProfile] = useState({
+    username: "",
+    profileImage: "",
+  });
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user?.token) {
+        try {
+          const res = await getCurrentProfile(user.token);
+          const data = res.data;
+          setUserProfile({
+            username: data.username || "",
+            profileImage: data.profileImage
+              ? data.profileImage.url
+              : "",
+          });
+        } catch (err) {
+          console.error("Load user profile error:", err);
+        }
+      }
+    };
+    fetchProfile();
+  }, [user]);
+
+  // Load course data
+  useEffect(() => {
+    loadCourse();
+    loadReviews();
+    loadQuestions();
+  }, [id, courseCode]);
+
+  // โหลด user profiles เมื่อมี reviews หรือ questions
+  const loadedUsersRef = useRef(new Set());
+
+  useEffect(() => {
+    const loadAllProfiles = async () => {
+      console.log("🚀 [useEffect] Starting to load all profiles");
+      const usernames = new Set();
+
+      // รวบรวม username จาก review comments
+      reviews.forEach(review => {
+        if (review.comments) {
+          review.comments.forEach(comment => {
+            if (comment.username) {
+              usernames.add(comment.username);
+            }
+          });
+        }
+      });
+
+      // รวบรวม username จาก question comments
+      questions.forEach(question => {
+        if (question.comments) {
+          question.comments.forEach(comment => {
+            if (comment.username) {
+              usernames.add(comment.username);
+            }
+          });
+        }
+      });
+
+      console.log("📋 [useEffect] Found usernames:", Array.from(usernames));
+
+      // โหลด profile ของแต่ละคน (เฉพาะที่ยังไม่เคยโหลด)
+      usernames.forEach(username => {
+        if (!loadedUsersRef.current.has(username)) {
+          console.log("🆕 [useEffect] Loading new user:", username);
+          loadedUsersRef.current.add(username);
+          loadUserProfile(username);
+        } else {
+          console.log("⏭️ [useEffect] Skipping (already loaded):", username);
+        }
+      });
+    };
+
+    if (reviews.length > 0 || questions.length > 0) {
+      console.log("✅ [useEffect] Triggering loadAllProfiles - Reviews:", reviews.length, "Questions:", questions.length);
+      loadAllProfiles();
+    } else {
+      console.log("⏸️ [useEffect] No reviews or questions yet");
+    }
+  }, [reviews, questions]);
+
+
+  const loadCourse = async () => {
+    try {
+      const res = await axios.get(`${API}/course/${id}`);
+      setCourse(res.data);
+    } catch (err) {
+      console.error("Load course error:", err);
+      toast.error("ไม่สามารถโหลดข้อมูลวิชาได้");
+    }
+  };
+
+  const loadReviews = async () => {
+    try {
+      const res = await axios.get(`${API}/allpostreview/${courseCode}`);
+      const reviewsData = res.data;
+
+      const reviewsWithComments = await Promise.all(
+        reviewsData.map(async (review) => {
+          try {
+            const commentsRes = await axios.get(
+              `${API}/allReviewComment/${review._id}`
+            );
+            return { ...review, comments: commentsRes.data.comments || [] };
+          } catch {
+            return { ...review, comments: [] };
+          }
+        })
+      );
+
+      setReviews(reviewsWithComments);
+    } catch {
+      // console.error("Load reviews error:", err);
+      setReviews([]);
+    }
+  };
+
+  const loadQuestions = async () => {
+    try {
+      const res = await axios.get(`${API}/allQuestions/${courseCode}`);
+      const questionsData = res.data.questions || [];
+
+      const questionsWithComments = await Promise.all(
+        questionsData.map(async (question) => {
+          try {
+            const commentsRes = await axios.get(
+              `${API}/allQuestionComment/${question._id}`
+            );
+            return { ...question, comments: commentsRes.data.comments || [] };
+          } catch {
+            return { ...question, comments: [] };
+          }
+        })
+      );
+
+      setQuestions(questionsWithComments);
+    } catch {
+      // console.error("Load questions error:", err);
+      setQuestions([]);
+    }
+  };
+
+  // ✅ Fixed Like Handler
+  const handleLike = async (reviewId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+
+    const review = reviews.find((r) => r._id === reviewId);
+    if (!review) return;
+
+    const currentLikes = review.like || 0;
+    const currentDislikes = review.disLike || 0;
+
+    // Toggle like logic
+    const hasLiked = review.userReaction === "like";
+    const hasDisliked = review.userReaction === "dislike";
+
+    let newLikes = currentLikes;
+    let newDislikes = currentDislikes;
+    let newReaction = null;
+
+    if (hasLiked) {
+      // Remove like
+      newLikes = currentLikes - 1;
+      newReaction = null;
+    } else {
+      // Add like
+      newLikes = currentLikes + 1;
+      newReaction = "like";
+      // Remove dislike if exists
+      if (hasDisliked) {
+        newDislikes = currentDislikes - 1;
+      }
+    }
+
+    // Optimistic update
+    setReviews((prevReviews) =>
+      prevReviews.map((r) =>
+        r._id === reviewId
+          ? {
+            ...r,
+            like: newLikes,
+            disLike: newDislikes,
+            userReaction: newReaction,
+          }
+          : r
+      )
+    );
+
+    try {
+      await axios.put(
+        `${API}/editpost/${reviewId}`,
+        {
+          like: newLikes,
+          disLike: newDislikes,
+        },
+        {
+          headers: { authtoken: user.token },
+        }
+      );
+    } catch (err) {
+      console.error("Update like error:", err);
+      toast.error("ไม่สามารถอัปเดตการถูกใจได้");
+      // Revert on error
+      loadReviews();
+    }
+  };
+
+  // ✅ Fixed Dislike Handler
+  const handleDislike = async (reviewId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+
+    const review = reviews.find((r) => r._id === reviewId);
+    if (!review) return;
+
+    const currentLikes = review.like || 0;
+    const currentDislikes = review.disLike || 0;
+
+    // Toggle dislike logic
+    const hasLiked = review.userReaction === "like";
+    const hasDisliked = review.userReaction === "dislike";
+
+    let newLikes = currentLikes;
+    let newDislikes = currentDislikes;
+    let newReaction = null;
+
+    if (hasDisliked) {
+      // Remove dislike
+      newDislikes = currentDislikes - 1;
+      newReaction = null;
+    } else {
+      // Add dislike
+      newDislikes = currentDislikes + 1;
+      newReaction = "dislike";
+      // Remove like if exists
+      if (hasLiked) {
+        newLikes = currentLikes - 1;
+      }
+    }
+
+    // Optimistic update
+    setReviews((prevReviews) =>
+      prevReviews.map((r) =>
+        r._id === reviewId
+          ? {
+            ...r,
+            like: newLikes,
+            disLike: newDislikes,
+            userReaction: newReaction,
+          }
+          : r
+      )
+    );
+
+    try {
+      await axios.put(
+        `${API}/editpost/${reviewId}`,
+        {
+          like: newLikes,
+          disLike: newDislikes,
+        },
+        {
+          headers: { authtoken: user.token },
+        }
+      );
+    } catch (err) {
+      console.error("Update dislike error:", err);
+      toast.error("ไม่สามารถอัปเดตการไม่ถูกใจได้");
+      // Revert on error
+      loadReviews();
+    }
+  };
+
+  // --- 5. (แก้ไข) handleRatingChange (ลบ logic ของ editingReview) ---
   const handleRatingChange = (category, value) => {
+    // For new review (and edit mode via sidebar)
     setNewReview((prev) => ({
       ...prev,
       [category]: value,
     }));
   };
 
-  const handleSubmitReview = (e) => {
+  // --- 6. (แก้ไข) handleSubmitReview (รองรับการสร้างและแก้ไข) ---
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
-    const review = {
-      id: reviews.length + 1,
-      username: "current_user",
-      postDate: new Date().toISOString().split("T")[0],
-      courseName: "Current Course",
-      professorName: "Current Professor",
-      comment: newReview.comment,
-      sec: newReview.sec,
-      term: newReview.term,
-      year: newReview.year,
-      grade: newReview.grade,
-      ratings: {
-        homework: newReview.homework,
-        interest: newReview.interest,
-        teaching: newReview.teaching,
-        rating: newReview.rating,
-      },
-      replies: [],
-    };
 
-    setReviews([review, ...reviews]);
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อนโพสต์รีวิว");
+      navigate("/login");
+      return;
+    }
+
+    // (Validations...)
+    if (!newReview.comment.trim()) {
+      toast.error("กรุณาเขียนรีวิว");
+      return;
+    }
+    if (!newReview.sec.trim()) {
+      toast.error("กรุณาระบุเซค");
+      return;
+    }
+    if (!newReview.term) {
+      toast.error("กรุณาเลือกภาคเรียน");
+      return;
+    }
+    if (!newReview.year) {
+      toast.error("กรุณาเลือกปีการศึกษา");
+      return;
+    }
+    if (!newReview.grade) {
+      toast.error("กรุณาเลือกเกรด");
+      return;
+    }
+    if (newReview.rating === 0) {
+      toast.error("กรุณาให้คะแนนดาว");
+      return;
+    }
+
+    try {
+      const reviewData = {
+        postText: newReview.comment,
+        section: newReview.sec,
+        semester: newReview.term,
+        academicYear: newReview.year,
+        grade: newReview.grade,
+        starRating: newReview.rating,
+        homeworkScore: newReview.homework * 20,
+        interestScore: newReview.interest * 20,
+        teachingScore: newReview.teaching * 20,
+      };
+
+      if (newReview._id) {
+        // --- UPDATE (EDIT) LOGIC ---
+        await axios.put(`${API}/editpost/${newReview._id}`, reviewData, {
+          headers: { authtoken: user.token },
+        });
+        toast.success("แก้ไขโพสต์รีวิวเสร็จสิ้น");
+      } else {
+        // --- CREATE (NEW POST) LOGIC ---
+        await axios.post(`${API}/postreview/${courseCode}`, reviewData, {
+          headers: { authtoken: user.token },
+        });
+        toast.success("โพสต์รีวิวสำเร็จ");
+      }
+
+      setNewReview(initialReviewState); // รีเซ็ตฟอร์ม
+      loadReviews();
+      loadCourse(); // Reload to update avg score
+    } catch (err) {
+      console.error("Submit/Update review error:", err);
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "โปรดกรอกข้อมูลให้ครบถ้วน";
+      toast.error(errorMsg);
+    }
+  };
+
+  // --- 7. (แก้ไข) handleSubmitQuestion (รองรับการสร้างและแก้ไข) ---
+  const handleSubmitQuestion = async (e) => {
+    e.preventDefault();
+
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อนถามคำถาม");
+      navigate('/login');
+      return;
+    }
+
+    if (!newQuestion.postText.trim()) {
+      toast.error("กรุณาเขียนคำถาม");
+      return;
+    }
+
+    try {
+      const questionData = {
+        questionText: newQuestion.postText,
+      };
+
+      if (newQuestion._id) {
+        // --- UPDATE (EDIT) LOGIC ---
+        // (ใช้ API endpoint จากโค้ดเดิม)
+        await axios.put(
+          `${API}/updateQuestion/${newQuestion._id}`,
+          questionData,
+          {
+            headers: { authtoken: user.token },
+          }
+        );
+        toast.success("แก้ไขโพสต์คำถามสำเร็จ");
+      } else {
+        // --- CREATE (NEW POST) LOGIC ---
+        // (ใช้ API endpoint จากโค้ดเดิม)
+        await axios.post(`${API}/question/${courseCode}`, questionData, {
+          headers: { authtoken: user.token },
+        });
+        toast.success("โพสต์คำถามสำเร็จ");
+      }
+
+      setNewQuestion(initialQuestionState); // รีเซ็ตฟอร์ม
+      loadQuestions();
+    } catch (err) {
+      console.error("Submit/Update question error:", err);
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "ไม่สามารถโพสต์คำถามได้";
+      toast.error(errorMsg);
+    }
+  };
+
+  const handleReply = async (type, id, content) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น");
+      return;
+    }
+
+    if (!content.trim()) return;
+
+    try {
+      if (type === "review") {
+        await axios.post(
+          `${API}/reviewComment/${id}`,
+          {
+            text: content,
+          },
+          {
+            headers: { authtoken: user.token },
+          }
+        );
+
+        const commentsRes = await axios.get(`${API}/allReviewComment/${id}`);
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review._id === id
+              ? { ...review, comments: commentsRes.data.comments || [] }
+              : review
+          )
+        );
+      } else {
+        await axios.post(
+          `${API}/questionComment/${id}`,
+          {
+            commentText: content,
+          },
+          {
+            headers: { authtoken: user.token },
+          }
+        );
+
+        const commentsRes = await axios.get(`${API}/allQuestionComment/${id}`);
+        setQuestions((prevQuestions) =>
+          prevQuestions.map((question) =>
+            question._id === id
+              ? { ...question, comments: commentsRes.data.comments || [] }
+              : question
+          )
+        );
+      }
+
+      setReplyContents((prev) => ({ ...prev, [`${type}_${id}`]: "" }));
+      toast.success("แสดงความคิดเห็นสำเร็จ");
+    } catch (err) {
+      console.error("Reply error:", err);
+      toast.error("ไม่สามารถแสดงความคิดเห็นได้");
+    }
+  };
+
+  // --- 8. (ลบ) ฟังก์ชัน Inline Edit (ไม่ใช้แล้ว) ---
+  // const handleEditReview = (review) => { ... };
+  // const handleUpdateReview = async () => { ... };
+
+  // --- 9. (แก้ไข) handleDeleteReview (ให้แสดง Toast) ---
+  // ========== ฟังก์ชันใหม่สำหรับแก้ไข Comment ==========
+
+  // เริ่มแก้ไข comment ของ review
+  const handleStartEditReviewComment = (comment) => {
+    setEditingReviewComment(comment._id);
+    setEditCommentText(comment.text || "");
+  };
+
+  // เริ่มแก้ไข comment ของ question
+  const handleStartEditQuestionComment = (comment) => {
+    setEditingQuestionComment(comment._id);
+    setEditCommentText(comment.commentText || "");
+  };
+
+  // ยกเลิกการแก้ไข
+  const handleCancelEditComment = () => {
+    setEditingReviewComment(null);
+    setEditingQuestionComment(null);
+    setEditCommentText("");
+  };
+
+  // บันทึกการแก้ไข comment ของ review
+  const handleSaveEditReviewComment = async (commentId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+
+    if (!editCommentText.trim()) {
+      toast.error("กรุณากรอกข้อความ");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `${API}/updateReviewComment/${commentId}`,
+        { text: editCommentText },
+        { headers: { authtoken: user.token } }
+      );
+      toast.success("แสดงความคิดเห็นเสร็จสิ้น");
+      handleCancelEditComment();
+      loadReviews();
+    } catch (err) {
+      console.error("Edit review comment error:", err);
+      toast.error("ไม่สามารถแก้ไขความคิดเห็นได้");
+    }
+  };
+
+  // บันทึกการแก้ไข comment ของ question
+  const handleSaveEditQuestionComment = async (commentId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+
+    if (!editCommentText.trim()) {
+      toast.error("กรุณากรอกข้อความ");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `${API}/updateQuestioncomment/${commentId}`,
+        { commentText: editCommentText },
+        { headers: { authtoken: user.token } }
+      );
+      toast.success("แสดงความคิดเห็นเสร็จสิ้น");
+      handleCancelEditComment();
+      loadQuestions();
+    } catch (err) {
+      console.error("Edit question comment error:", err);
+      toast.error("ไม่สามารถแก้ไขคำตอบได้");
+    }
+  };
+
+  // ลบ comment ของ review
+  const handleDeleteReviewComment = async (commentId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+    console.log("delete review success log")
+    // if (!window.confirm("คุณต้องการลบความคิดเห็นนี้ใช่หรือไม่?")) {
+    //   return;
+    // }
+
+    try {
+      await axios.delete(`${API}/deleteReviewComment/${commentId}`, {
+        headers: { authtoken: user.token },
+      });
+      toast.success("ลบความคิดเห็นเสร็จสิ้น");
+      loadReviews();
+    } catch (err) {
+      console.error("Delete review comment error:", err);
+      toast.error("ไม่สามารถลบความคิดเห็นได้");
+    }
+  };
+
+  // ลบ comment ของ question
+  const handleDeleteQuestionComment = async (commentId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+    console.log("delete question success log")
+    // if (!window.confirm("คุณต้องการลบคำตอบนี้ใช่หรือไม่?")) {
+    //   return;
+    // }
+
+    try {
+      await axios.delete(`${API}/deleteQuestioncomment/${commentId}`, {
+        headers: { authtoken: user.token },
+      });
+      toast.success("ลบความคิดเห็นเสร็จสิ้น");
+      loadQuestions();
+    } catch (err) {
+      console.error("Delete question comment error:", err);
+      toast.error("ไม่สามารถลบคำตอบได้");
+    }
+  };
+
+  // ========== สิ้นสุดฟังก์ชันใหม่ ==========
+
+  const toggleComments = (id) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  // ฟังก์ชันดึง profile ของ user แต่ละคน
+
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+    try {
+      // (ใช้ API endpoint จากโค้ดเดิม)
+      await axios.delete(`${API}/deletepost/${reviewId}`, {
+        headers: { authtoken: user.token },
+      });
+
+      toast.success("ลบโพสต์รีวิวเสร็จสิ้น")
+      loadReviews();
+      loadCourse(); // Reload to update avg score
+
+      // เคลียร์ฟอร์มใน Sidebar ที่นี่ หลังจากลบสำเร็จ
+      setNewReview(initialReviewState);
+
+    } catch (err) {
+      console.error("Delete review error:", err);
+      toast.error("ไม่สามารถลบรีวิวได้");
+    }
+    
+  };
+
+
+
+  // --- 12. (แก้ไข) handleDeleteQuestion (ให้แสดง Toast) ---
+  const handleDeleteQuestion = async (questionId) => {
+    if (!user?.token) {
+      toast.error("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+
+try {
+      // (ใช้ API endpoint จากโค้ดเดิม)
+      await axios.delete(`${API}/deleteQuestion/${questionId}`, {
+        headers: { authtoken: user.token },
+      });
+
+      toast.success("ลบโพสต์คำถามเสร็จสิ้น");
+      loadQuestions();
+
+      // เคลียร์ฟอร์มใน Sidebar ที่นี่ หลังจากลบสำเร็จ
+      setNewQuestion(initialQuestionState);
+
+    } catch (err) {
+      console.error("Delete question error:", err);
+      toast.error("ไม่สามารถลบโพสต์คำถามได้");
+    }
+  };
+
+ 
+  // --- 14. (เพิ่ม) ฟังก์ชันสำหรับเริ่มแก้ไขใน Sidebar ---
+  const handleStartEditInSidebar = (review) => {
+    setIsOpen(true); // 1. เปิด Sidebar
+    setActiveTab("review"); // 2. สลับไปแท็บรีวิว
+
+    // 3. นำข้อมูลรีวิวมาใส่ในฟอร์ม
     setNewReview({
-      homework: 0,
-      interest: 0,
-      teaching: 0,
-      comment: "",
-      sec: "", //เซค
-      term: "", //ภาคเรียน
-      year: "", //ปีการศึกษา
-      grade: "",
-      rating: 0, //คะแนนรีวิว
+      _id: review._id,
+      comment: review.postText,
+      sec: review.section,
+      term: review.semester,
+      year: review.academicYear,
+      grade: review.grade,
+      rating: review.starRating,
+      homework: Math.round(review.homeworkScore / 20),
+      interest: Math.round(review.interestScore / 20),
+      teaching: Math.round(review.teachingScore / 20),
     });
   };
 
-  const handleSubmitQuestion = (e) => {
-    e.preventDefault();
-    const question = {
-      id: questions.length + 1,
-      username: "current_user",
-      question: newQuestion,
-      replies: [],
-    };
+  const handleStartEditQuestion = (question) => {
+    setIsOpen(true); // 1. เปิด Sidebar
+    setActiveTab("question"); // 2. สลับไปแท็บคำถาม
 
-    setQuestions([question, ...questions]);
-    setNewQuestion("");
+    // 3. นำข้อมูลคำถามมาใส่ในฟอร์ม
+    setNewQuestion({
+      _id: question._id,
+      postText: question.questionText, 
+    });
   };
 
-  const handleReply = (type, id, content) => {
-    if (type === "review") {
-      setReviews(
-        reviews.map((review) => {
-          if (review.id === id) {
-            return {
-              ...review,
-              replies: [
-                ...review.replies,
-                {
-                  username: "current_user",
-                  comment: content,
-                  date: new Date().toISOString().split("T")[0],
-                },
-              ],
-            };
-          }
-          return review;
-        })
-      );
-    } else {
-      setQuestions(
-        questions.map((question) => {
-          if (question.id === id) {
-            return {
-              ...question,
-              replies: [
-                ...question.replies,
-                {
-                  username: "current_user",
-                  answer: content,
-                  date: new Date().toISOString().split("T")[0],
-                },
-              ],
-            };
-          }
-          return question;
-        })
-      );
-    }
-    setReplyContents((prev) => ({ ...prev, [`${type}_${id}`]: "" }));
-  };
 
   const RatingStars = ({ rating, onRatingChange, readOnly = false }) => {
     return (
@@ -256,13 +816,12 @@ function ReviewSub() {
           <button
             key={star}
             type="button"
-            onClick={() => !readOnly && onRatingChange(star)}
+            onClick={() => !readOnly && onRatingChange && onRatingChange(star)}
             disabled={readOnly}
-            className={`${
-              readOnly
-                ? "cursor-default"
-                : "cursor-pointer hover:scale-110 transition-transform"
-            } ${star <= rating ? "text-yellow-400" : "text-gray-300"} text-xl`}
+            className={`${readOnly
+              ? "cursor-default"
+              : "cursor-pointer hover:scale-110 transition-transform"
+              } ${star <= rating ? "text-yellow-400" : "text-gray-300"} text-xl`}
           >
             ★
           </button>
@@ -270,16 +829,26 @@ function ReviewSub() {
       </div>
     );
   };
-  //  web css part
+
+  if (!course) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-t-transparent  animate-spin mx-auto mb-4 rounded-full"></div>
+          <p className="text-gray-600">กำลังโหลด...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="">
-      <div className="flex min-h-screen bg-gray-100 ">
+      <div className="flex min-h-screen bg-[#2d2f3b]">
         {/* Sidebar */}
         <div
-          className={`bg-white shadow-lg border-r border-gray-200 transition-all duration-300 
-        ${isOpen ? "w-lg " : "w-14"} flex flex-col `}
+          className={`bg-[#ffffff] shadow-lg border-r border-gray-200 transition-all duration-300 ${isOpen ? "w-lg" : "w-14"
+            } flex flex-col`}
         >
-          {/* Toggle button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="p-3 hover:bg-gray-100 flex items-center justify-end"
@@ -291,59 +860,55 @@ function ReviewSub() {
             )}
           </button>
 
-          {/* Content in sidebar */}
           {isOpen && (
             <div className="p-4 overflow-y-auto w-lg">
               <header className="text-center mb-8">
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <h2 className="text-xl font-semibold">
-                    ชื่อวิชาและชื่ออาจารย์
-                  </h2>
-                  <p className="text-gray-600">รายละเอียดของวิชานี้...</p>
+                <div className="bg-gray-100 p-4 ">
+                  <h2 className="text-xl font-semibold">{course.name}</h2>
+                  <p className="text-gray-600">{course.courseCode}</p>
+                  <p className="text-gray-600">อาจารย์: {course.teacher}</p>
                   <div className="mt-2">
-                    <span className="text-lg font-medium">คะแนนเฉลี่ย 4/5</span>
+                    <span className="text-lg font-medium">
+                      คะแนนเฉลี่ย {course.avgReviewScore?.toFixed(1) || 0}/5
+                    </span>
                     <span className="text-gray-500 ml-4">
                       จำนวนรีวิว: {reviews.length}
                     </span>
                   </div>
                 </div>
               </header>
-              {/* Posting review Form */}
+
               <section className="mb-8 bg-blue-50 p-6 rounded-lg transition-all duration-300">
-                {/* === Tabs === */}
-                <div className="flex  mb-6">
-                  <p
+                <div className="flex mb-6 gap-2">
+                  <button
                     onClick={() => setActiveTab("review")}
-                    className={` py-2  font-semibold transition-colors ${
-                      activeTab === "review"
-                        ? "underline underline-offset-1 text-[#000000]"
-                        : " text-gray-700  hover:text-[#000000] "
-                    }`}
+                    className={`py-2 px-4 font-semibold transition-colors rounded-md ${activeTab === "review"
+                      ? "bg-[#26268c] text-white"
+                      : "text-gray-700 hover:bg-gray-200"
+                      }`}
                   >
                     โพสต์รีวิว
-                  </p>
-                  <p className="text-2xl">/</p>
-                  <p
+                  </button>
+                  <button
                     onClick={() => setActiveTab("question")}
-                    className={`py-2 rounded-md font-semibold transition-colors ${
-                      activeTab === "question"
-                        ? "underline underline-offset-1 text-[#000000]"
-                        : "text-gray-700 hover:text-[#000000]"
-                    }`}
+                    className={`py-2 px-4 font-semibold transition-colors rounded-md ${activeTab === "question"
+                      ? "bg-[#26268c] text-white"
+                      : "text-gray-700 hover:bg-gray-200"
+                      }`}
                   >
                     โพสต์คำถาม
-                  </p>
+                  </button>
                 </div>
 
-                {/* Review Form */}
                 {activeTab === "review" && (
                   <form
                     onSubmit={handleSubmitReview}
                     className="space-y-4 animate-fadeIn"
                   >
-                    <h3 className="text-xl font-semibold mb-4">โพสต์รีวิว</h3>
+                    <h3 className="text-xl font-semibold mb-4">
+                      {newReview._id ? "แก้ไขรีวิว" : "โพสต์รีวิว"}
+                    </h3>
 
-                    {/* wirting post */}
                     <div>
                       <label className="block text-sm font-medium mb-2">
                         เขียนรีวิว...
@@ -356,26 +921,24 @@ function ReviewSub() {
                             comment: e.target.value,
                           })
                         }
-                        className="w-full p-3 border border-gray-300 rounded-md h-24"
+                        className="w-full p-3 border border-gray-300 rounded-md h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="แบ่งปันประสบการณ์ของคุณ..."
                         required
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           เซค
                         </label>
                         <select
+                          type="text"
                           value={newReview.sec}
                           onChange={(e) =>
-                            setNewReview({
-                              ...newReview,
-                              sec: e.target.value,
-                            })
+                            setNewReview({ ...newReview, sec: e.target.value })
                           }
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         >
                           <option value="">เลือกเซค</option>
@@ -391,12 +954,9 @@ function ReviewSub() {
                         <select
                           value={newReview.term}
                           onChange={(e) =>
-                            setNewReview({
-                              ...newReview,
-                              term: e.target.value,
-                            })
+                            setNewReview({ ...newReview, term: e.target.value })
                           }
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         >
                           <option value="">เลือกภาคเรียน</option>
@@ -404,6 +964,7 @@ function ReviewSub() {
                           <option value="2">2</option>
                         </select>
                       </div>
+
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           ปีการศึกษา
@@ -411,24 +972,20 @@ function ReviewSub() {
                         <select
                           value={newReview.year}
                           onChange={(e) =>
-                            setNewReview({
-                              ...newReview,
-                              year: e.target.value,
-                            })
+                            setNewReview({ ...newReview, year: e.target.value })
                           }
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         >
                           <option value="">เลือกปีการศึกษา</option>
                           <option value="2568">2568</option>
                           <option value="2567">2567</option>
                           <option value="2566">2566</option>
-                          {/* หลักสูตรถึง 66 */}
                         </select>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-10">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           เกรดที่ได้
@@ -441,7 +998,7 @@ function ReviewSub() {
                               grade: e.target.value,
                             })
                           }
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         >
                           <option value="">เลือกเกรด</option>
@@ -455,27 +1012,23 @@ function ReviewSub() {
                           <option value="F">F</option>
                         </select>
                       </div>
-                      <div className="">
-                        <div>
-                          <label className=" text-sm font-medium mt-1 mb-1">
-                            ดาว
-                          </label>
-                        </div>
-                        <div className="mt-1.5">
-                          <RatingStars
-                            className=""
-                            rating={newReview.rating}
-                            onRatingChange={(value) =>
-                              handleRatingChange("rating", value)
-                            }
-                          />
-                        </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          คะแนนรีวิว
+                        </label>
+                        <RatingStars
+                          rating={newReview.rating}
+                          onRatingChange={(value) =>
+                            handleRatingChange("rating", value)
+                          }
+                        />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-rows-1 gap-4 mb-4">
-                      <div className="grid grid-cols-2">
-                        <label className=" text-sm font-medium mt-1 mb-1 ">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium">
                           จำนวนการบ้าน
                         </label>
                         <RatingStars
@@ -485,8 +1038,8 @@ function ReviewSub() {
                           }
                         />
                       </div>
-                      <div className="grid grid-cols-2">
-                        <label className=" text-sm font-medium mt-1 mb-1">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium">
                           ความน่าสนใจ
                         </label>
                         <RatingStars
@@ -496,8 +1049,8 @@ function ReviewSub() {
                           }
                         />
                       </div>
-                      <div className="grid grid-cols-2">
-                        <label className="  text-sm font-medium mt-1 mb-1">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium">
                           การสอนของอาจารย์
                         </label>
                         <RatingStars
@@ -509,42 +1062,106 @@ function ReviewSub() {
                       </div>
                     </div>
 
-                    <button
-                      type="submit"
-                      className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      โพสต์รีวิว
-                    </button>
+                    {/* --- 15. (แก้ไข) ปุ่มสำหรับฟอร์มรีวิว (แบบไดนามิก) --- */}
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="submit"
+                        className={`w-full text-white px-6 py-3 rounded-md transition-colors font-medium ${newReview._id
+                          ? "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนแก้ไข
+                          : "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนโพสต์ใหม่
+                          }`}
+                      >
+                        {newReview._id ? "บันทึกการแก้ไข" : "โพสต์รีวิว"}
+                      </button>
+
+                      {/* Show Cancel and Delete buttons only in edit mode */}
+                      {newReview._id && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setNewReview(initialReviewState)} // กดเพื่อรีเซ็ตฟอร์ม
+                            className="w-full bg-[#9897e4] text-white px-6 py-2 rounded-md hover:bg-[#8886d4] transition-colors font-medium"
+                          >
+                            ยกเลิกการแก้ไข
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleDeleteReview(newReview._id);
+                            }}
+                            className="w-full bg-[#f8ad1f] text-white px-6 py-2 rounded-md hover:bg-[#e79e17] transition-colors font-medium"
+                          >
+                            ลบโพสต์
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {/* --- สิ้นสุดปุ่มไดนามิก --- */}
                   </form>
                 )}
 
-                {/* Question Form */}
                 {activeTab === "question" && (
                   <form
                     onSubmit={handleSubmitQuestion}
                     className="space-y-4 animate-fadeIn"
                   >
-                    <h3 className="text-xl font-semibold mb-4">โพสต์คำถาม</h3>
+                    <h3 className="text-xl font-semibold mb-4">
+                      {newQuestion._id ? "แก้ไขคำถาม" : "โพสต์คำถาม"}
+                    </h3>
 
                     <div>
                       <label className="block text-sm font-medium mb-2">
                         ถามคำถาม...
                       </label>
-                      <input
-                        type="text"
-                        value={newQuestion}
-                        onChange={(e) => setNewQuestion(e.target.value)}
+                      {/* --- 16. (แก้ไข) Input เป็น Textarea และใช้ state object --- */}
+                      <textarea
+                        value={newQuestion.postText}
+                        onChange={(e) =>
+                          setNewQuestion({ ...newQuestion, postText: e.target.value })
+                        }
                         placeholder="มีคำถามอะไรเกี่ยวกับวิชานี้?"
-                        className="w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       />
                     </div>
-                    <button
-                      type="submit"
-                      className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
-                    >
-                      ถามคำถาม
-                    </button>
+
+                    {/* --- 17. (แก้ไข) ปุ่มสำหรับฟอร์มคำถาม (แบบไดนามิก) --- */}
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="submit"
+                        className={`w-full text-white px-6 py-3 rounded-md transition-colors font-medium ${newQuestion._id
+                          ? "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนแก้ไข
+                          : "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนโพสต์ใหม่ (สีเดิม)
+                          }`}
+                      >
+                        {newQuestion._id ? "บันทึกการแก้ไข" : "ถามคำถาม"}
+                      </button>
+
+                      {/* Show Cancel and Delete buttons only in edit mode */}
+                      {newQuestion._id && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setNewQuestion(initialQuestionState)} // กดเพื่อรีเซ็ตฟอร์ม
+                            className="w-full bg-[#9897e4] text-white px-6 py-2 rounded-md hover:bg-[#8886d4] transition-colors font-medium"
+                          >
+                            ยกเลิกการแก้ไข
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleDeleteQuestion(newQuestion._id);
+                            }}
+                            className="w-full bg-[#f8ad1f] text-white px-6 py-2 rounded-md hover:bg-[#e79e17] transition-colors font-medium"
+                          >
+                            ลบคำถาม
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {/* --- สิ้นสุดปุ่มไดนามิก --- */}
                   </form>
                 )}
               </section>
@@ -552,259 +1169,703 @@ function ReviewSub() {
           )}
         </div>
 
-        <div className="max-w-7xl  relative w-7xl  mx-auto p-6 bg-white rounded-lg shadow-lg">
-          {/* Reviews Section */}
-          <div className="grid grid-cols-2 ">
-            <section className="mb-8 pr-5 border-r-2 border-[#c4c4c43c] ">
-              <h3 className="text-2xl font-semibold mb-4">REVIEW</h3>
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Reviews Section */}
+              <section className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">
+                  REVIEW ({reviews.length})
+                </h3>
 
-              <div className="space-y-6">
-                {reviews.map((review) => {
-                  const { likes, dislikes, userReaction } = reactions[review.id];
-                  
+                <div className="space-y-6">
+                  {reviews.length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">
+                      ยังไม่มีรีวิว
+                    </p>
+                  ) : (
+                    reviews.map((review) => {
+                      const isOwner = user?.username === review.username;
+                      const likes = review.like || 0;
+                      const dislikes = review.disLike || 0;
+                      const userReaction = review.userReaction || null;
 
-                  return (
-                    <div
-                      key={review.id}
-                      className="border-b border-gray-200 pb-6"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <span className="font-semibold text-lg">
-                            {review.username}
-                          </span>
-                          <span className="text-gray-500 ml-4">
-                            {review.postDate}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-gray-700 mb-3">{review.comment}</p>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 text-sm">
-                        <div>
-                          <span className="text-gray-600">คะแนนรีวิว:</span>
-                          <RatingStars
-                            rating={review.ratings.rating}
-                            readOnly={true}
-                          />
-                        </div>
-
-                        <div className="flex justify-end pb-4">
-                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
-                            เกรด {review.grade}
-                          </span>
-                        </div>
-
-                        {/* ปุ่มถูกใจ / ไม่ถูกใจ */}
-                        <div className="grid grid-cols-2">
-                          <button
-                            onClick={() => handleLike(review.id)}
-                            className="flex items-center gap-1 hover:scale-105 transition-transform"
-                          >
-                            <HeartIcon
-                              className={`h-6 w-6 ${
-                                userReaction === "like"
-                                  ? "text-red-500"
-                                  : "text-gray-500"
-                              }`}
-                            />
-                            {likes}
-                          </button>
-
-                          <button
-                            onClick={() => handleDislike(review.id)}
-                            className="flex items-center gap-1 hover:scale-105 transition-transform"
-                          >
-                            <FaceFrownIcon
-                              className={`h-6 w-6 ${
-                                userReaction === "dislike"
-                                  ? "text-blue-500"
-                                  : "text-gray-500"
-                              }`}
-                            />
-                            {dislikes}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* ปุ่มเปิด/ปิด dropdown */}
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() =>
-                            setOpenId(openId === review.id ? null : review.id)
-                          }
-                          className="text-gray-500 hover:text-gray-700 transition-transform"
-                        >
-                          {openId === review.id ? (
-                            <ChevronDoubleUpIcon className="h-5 w-5" />
-                          ) : (
-                            <ChevronDoubleDownIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                      </div>
-
-                      {/* เนื้อหาที่ซ่อน / แสดง */}
-                      {openId === review.id && (
-                        <div className="mt-3 transition-all duration-300 ease-in-out">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 text-sm">
-                            <div>
-                              <p>เซค {review.sec}</p>
-                            </div>
-                            <div>
-                              <p>ภาคเรียน {review.term}</p>
-                            </div>
-                            <div>
-                              <p>ปีการศึกษา {review.year}</p>
-                            </div>
-
-                            <div>
-                              <span className="text-gray-600">
-                                จำนวนการบ้าน:
-                              </span>
-                              <RatingStars
-                                rating={review.ratings.homework}
-                                readOnly={true}
-                              />
-                            </div>
-                            <div>
-                              <span className="text-gray-600">
-                                ความน่าสนใจ:
-                              </span>
-                              <RatingStars
-                                rating={review.ratings.interest}
-                                readOnly={true}
-                              />
-                            </div>
-                            <div>
-                              <span className="text-gray-600">
-                                การสอนของอาจารย์:
-                              </span>
-                              <RatingStars
-                                rating={review.ratings.teaching}
-                                readOnly={true}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Replies */}
-                      {review.replies.map((reply, index) => (
+                      return (
                         <div
-                          key={index}
-                          className="ml-6 mt-3 p-3 bg-gray-50 rounded"
+                          key={review._id}
+                          className="border-b border-gray-200 pb-6 last:border-b-0"
                         >
-                          <div className="flex justify-between">
-                            <span className="font-medium text-blue-600">
-                              {reply.username}
-                            </span>
-                            <span className="text-gray-500 text-sm">
-                              {reply.date}
-                            </span>
-                          </div>
-                          <p className="text-gray-700">{reply.comment}</p>
+                          {/*  Inline Edit UI  */}
+                          <>
+                            {/* Display Mode */}
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center">
+                                <span className="w-10 h-10 bg-blue-50 rounded-full overflow-hidden flex items-center justify-center">
+                                  {userProfiles[review.username] ? (
+                                    <img
+                                      src={userProfiles[review.username]}
+                                      alt={review.username}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = "/default-avatar.png";
+                                      }}
+                                    />
+                                  ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                                    </svg>
+                                  )}
+                                </span>
+                                <span className="font-bold text-lg text-gray-800 ml-1">
+                                  {review.username}
+                                </span>
+                                <span className="text-gray-500 text-sm ml-3">
+                                  {new Date(
+                                    review.createdAt
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+
+                              {/* Edit/Delete Buttons - Only show for owner */}
+                              {isOwner && (
+                                <div className="flex gap-1">
+                                  {/* --- 19. (แก้ไข) onClick ปุ่มแก้ไขรีวิว --- */}
+                                  <button
+                                    onClick={() => handleStartEditInSidebar(review)}
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                    title="แก้ไข"
+                                  >
+                                    <PencilIcon className="h-5 w-5" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-gray-700 mb-3 leading-relaxed">
+                              {review.postText}
+                            </p>
+
+                            <div className="flex items-center gap-4 mb-3">
+                              <div className="flex items-center gap-1">
+                                <span className="text-sm text-gray-600">
+                                  คะแนนรีวิว
+                                </span>
+                                <RatingStars
+                                  rating={review.starRating}
+                                  readOnly={true}
+                                />
+                              </div>
+                              <span className="bg-[#26268c] text-white px-3 py-1 rounded-full text-sm font-medium">
+                                เกรด {review.grade}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-4 mb-3">
+                              <button
+                                onClick={() => handleLike(review._id)}
+                                disabled={!user?.token}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${userReaction === "like"
+                                  ? "bg-red-50 text-red-600"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                  } ${!user?.token
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "cursor-pointer"
+                                  }`}
+                              >
+                                {userReaction === "like" ? (
+                                  <HeartIconSolid className="w-5 h-5" />
+                                ) : (
+                                  <HeartIcon className="w-5 h-5" />
+                                )}
+                                <span className="font-medium">{likes}</span>
+                              </button>
+
+                              <button
+                                onClick={() => handleDislike(review._id)}
+                                disabled={!user?.token}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${userReaction === "dislike"
+                                  ? "bg-blue-50 text-blue-600"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                  } ${!user?.token
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "cursor-pointer"
+                                  }`}
+                              >
+                                {userReaction === "dislike" ? (
+                                  <FaceFrownIconSolid className="w-5 h-5" />
+                                ) : (
+                                  <FaceFrownIcon className="w-5 h-5" />
+                                )}
+                                <span className="font-medium">
+                                  {dislikes}
+                                </span>
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  setOpenId(
+                                    openId === review._id ? null : review._id
+                                  )
+                                }
+                                className="ml-auto text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded transition-colors"
+                                title={
+                                  openId === review._id
+                                    ? "ซ่อนรายละเอียด"
+                                    : "แสดงรายละเอียด"
+                                }
+                              >
+                                {openId === review._id ? (
+                                  <ChevronDoubleUpIcon className="h-5 w-5" />
+                                ) : (
+                                  <ChevronDoubleDownIcon className="h-5 w-5" />
+                                )}
+                              </button>
+                            </div>
+
+                            {openId === review._id && (
+                              <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3 animate-fadeIn">
+                                <div className="grid grid-cols-3 gap-3 text-sm">
+                                  <div className="flex flex-col">
+                                    <span className="text-gray-600 font-medium">
+                                      เซค
+                                    </span>
+                                    <span className="text-gray-800">
+                                      {review.section}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-gray-600 font-medium">
+                                      ภาคเรียน
+                                    </span>
+                                    <span className="text-gray-800">
+                                      {review.semester}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-gray-600 font-medium">
+                                      ปีการศึกษา
+                                    </span>
+                                    <span className="text-gray-800">
+                                      {review.academicYear}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2 pt-2 border-t border-gray-200">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">
+                                      จำนวนการบ้าน:
+                                    </span>
+                                    <RatingStars
+                                      rating={Math.round(
+                                        review.homeworkScore / 20
+                                      )}
+                                      readOnly={true}
+                                    />
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">
+                                      ความน่าสนใจ:
+                                    </span>
+                                    <RatingStars
+                                      rating={Math.round(
+                                        review.interestScore / 20
+                                      )}
+                                      readOnly={true}
+                                    />
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">
+                                      การสอนของอาจารย์:
+                                    </span>
+                                    <RatingStars
+                                      rating={Math.round(
+                                        review.teachingScore / 20
+                                      )}
+                                      readOnly={true}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Comments */}
+                            {(review.comments || []).length > 0 && (
+                              <div className="mt-4 space-y-2">
+                                <button
+                                  onClick={() => toggleComments(`review_${review._id}`)}
+                                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium mb-3 text-sm"
+                                >
+                                  {expandedComments[`review_${review._id}`] ? (
+                                    <>
+                                      <ChevronDoubleUpIcon className="h-4 w-4" />
+                                      ซ่อนความคิดเห็น ({review.comments.length})
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDoubleDownIcon className="h-4 w-4" />
+                                      แสดงความคิดเห็น ({review.comments.length})
+                                    </>
+                                  )}
+                                </button>
+                                {expandedComments[`review_${review._id}`] && (
+                                  <div className="space-y-2">
+                                    {[...review.comments]
+                                      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                      .map((comment, index) => {
+                                        const isCommentOwner = user?.username === comment.username
+
+                                        return (
+                                          <div
+                                            key={index}
+                                            className="ml-6 p-3 bg-[#dbdbfb]  rounded-lg border-l-4 border-[#26268c]"
+                                          >
+                                            {/* กำลังแก้ไข comment นี้ */}
+                                            {editingReviewComment === comment._id ? (
+                                              <div className="space-y-2">
+                                                <textarea
+                                                  value={editCommentText}
+                                                  onChange={(e) => setEditCommentText(e.target.value)}
+                                                  className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                                                  rows={3}
+                                                />
+                                                <div className="flex gap-3">
+                                                  <button
+                                                    onClick={() => handleSaveEditReviewComment(comment._id)}
+                                                    className="p-1.5 bg-[#26268c] text-white rounded-md hover:bg-[#1f1f81] transition-colors"
+                                                    title="บันทึก"
+                                                  >
+                                                    <CheckIcon className="h-4 w-4" />
+                                                  </button>
+                                                  <button
+                                                    onClick={handleCancelEditComment}
+                                                    className="p-1.5 bg-[#8c8ae3] text-black rounded-md hover:bg-[#8180dc] transition-colors"
+                                                    title="ยกเลิก"
+                                                  >
+                                                    <XMarkIcon className="h-4 w-4" />
+                                                  </button>
+                                                  <button
+                                                    onClick={() =>
+                                                      handleDeleteReviewComment(
+                                                        comment._id
+                                                      )
+                                                    }
+                                                    className="p-1.5 bg-[#f8ad1f] text-gray-700 rounded-md hover:bg-[#e29a15] transition-colors"
+                                                    title="ยกเลิก"
+                                                  >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <>
+                                                <div className="flex justify-between items-start mb-1">
+                                                  <div className="flex items-center gap-2">
+                                                    {/* Profile Image */}
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                                      {userProfiles[comment.username] ? (
+                                                        <img
+                                                          src={userProfiles[comment.username]}
+                                                          alt={comment.username}
+                                                          className="w-full h-full object-cover"
+                                                          onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "/default-avatar.png";
+                                                          }}
+                                                        />
+                                                      ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                                                        </svg>
+                                                      )}
+                                                    </div>
+                                                    <span className={`font-semibold ${isCommentOwner ? "text-black" : "text-black"}`}>
+                                                      {comment.username}
+                                                      {isCommentOwner && (
+                                                        <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                                          คุณ
+                                                        </span>
+                                                      )}
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-gray-600 text-xs">
+                                                      {new Date(
+                                                        comment.createdAt
+                                                      ).toLocaleDateString("th-TH")}
+                                                    </span>
+                                                    {isCommentOwner && (
+                                                      <div className="flex gap-1">
+                                                        <button
+                                                          onClick={() => handleStartEditReviewComment(comment)}
+                                                          className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                                                          title="แก้ไข"
+                                                        >
+                                                          <PencilIcon className="h-3.5 w-3.5" />
+                                                        </button>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                                <p className="text-gray-800 text-sm">
+                                                  {comment.text}
+                                                </p>
+                                              </>
+                                            )}
+                                          </div>
+                                        )
+                                      })
+                                    }
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Reply Input */}
+                            <div className="mt-3 relative">
+                              <input
+                                type="text"
+                                placeholder={
+                                  user?.token
+                                    ? "แสดงความคิดเห็น..."
+                                    : "เข้าสู่ระบบเพื่อแสดงความคิดเห็น"
+                                }
+                                value={
+                                  replyContents[`review_${review._id}`] || ""
+                                }
+                                onChange={(e) =>
+                                  setReplyContents({
+                                    ...replyContents,
+                                    [`review_${review._id}`]: e.target.value,
+                                  })
+                                }
+                                disabled={!user?.token}
+                                className="w-full p-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleReply(
+                                      "review",
+                                      review._id,
+                                      replyContents[`review_${review._id}`] ||
+                                      ""
+                                    );
+                                  }
+                                }}
+                              />
+                              <button
+                                onClick={() =>
+                                  handleReply(
+                                    "review",
+                                    review._id,
+                                    replyContents[`review_${review._id}`] ||
+                                    ""
+                                  )
+                                }
+                                disabled={
+                                  !user?.token ||
+                                  !replyContents[
+                                    `review_${review._id}`
+                                  ]?.trim()
+                                }
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <PaperAirplaneIcon className="h-5 w-5 text-blue-600" />
+                              </button>
+                            </div>
+                          </>
+                          {/* )} */}
                         </div>
-                      ))}
+                      );
+                    })
+                  )}
+                </div>
+              </section>
 
-                      {/* Reply Form */}
-                      <div className="mt-3 relative">
-                        <input
-                          type="text"
-                          placeholder="แสดงความคิดเห็น..."
-                          value={replyContents[`review_${review.id}`] || ""}
-                          onChange={(e) =>
-                            setReplyContents({
-                              ...replyContents,
-                              [`review_${review.id}`]: e.target.value,
-                            })
-                          }
-                          className="w-full p-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                        <PaperAirplaneIcon
-                          onClick={() =>
-                            handleReply(
-                              "review",
-                              review.id,
-                              replyContents[`review_${review.id}`] || ""
-                            )
-                          }
-                          className="h-5 w-5 text-gray-500 hover:text-[#ababab] absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer transition-colors"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+              {/* Questions Section */}
+              <section className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">
+                  QUESTION ({questions.length})
+                </h3>
 
-            {/* Questions Section */}
-            <section className="mb-8 pl-5">
-              <h3 className="text-2xl font-semibold mb-4">QUESTION</h3>
+                <div className="space-y-6">
+                  {questions.length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">
+                      ยังไม่มีคำถาม
+                    </p>
+                  ) : (
+                    questions.map((question) => {
+                      const isOwner = user?.username === question.username;
 
-              <div className="space-y-6">
-                {questions.map((question) => (
-                  <div
-                    key={question.id}
-                    className="border-b border-gray-200 pb-6"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-semibold">{question.username}</span>
-                      <span className="text-gray-500 text-sm">คำถาม</span>
-                    </div>
+                      return (
+                        <div
+                          key={question._id}
+                          className="border-b border-gray-200 pb-6 last:border-b-0"
+                        >
+                          {/* --- 20. (ลบ) Inline Edit UI --- */}
+                          {/* {editingQuestion?._id === question._id ? ( ... ) : ( ... )} */}
 
-                    <p className="text-gray-700 mb-3">{question.question}</p>
+                          <>
+                            {/* Display Mode */}
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center">
+                                <span className="w-10 h-10 bg-blue-50 rounded-full overflow-hidden flex items-center justify-center">
+                                  {userProfiles[question.username] ? (
+                                    <img
+                                      src={userProfiles[question.username]}
+                                      alt={question.username}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = "/default-avatar.png";
+                                      }}
+                                    />
+                                  ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                                    </svg>
+                                  )}
+                                </span>
+                                <span className="font-bold text-lg text-gray-800 ml-1">
+                                  {question.username}
+                                </span>
+                                <span className="text-gray-500 text-sm ml-3">
+                                  {new Date(
+                                    question.createdAt
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
 
-                    {/* Answers */}
-                    {question.replies.map((reply, index) => (
-                      <div
-                        key={index}
-                        className="ml-6 mt-3 p-3 bg-yellow-50 rounded"
-                      >
-                        <div className="flex justify-between">
-                          <span className="font-medium text-green-600">
-                            {reply.username}
-                          </span>
-                          <span className="text-gray-500 text-sm">
-                            {reply.date}
-                          </span>
+                              {/* Edit/Delete Buttons - Only show for owner */}
+                              {isOwner && (
+                                <div className="flex gap-1">
+                                  {/* --- 21. (แก้ไข) onClick ปุ่มแก้ไขคำถาม --- */}
+                                  <button
+                                    onClick={() =>
+                                      handleStartEditQuestion(question)
+                                    }
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                    title="แก้ไข"
+                                  >
+                                    {/* (เปลี่ยนจาก PencilSquareIcon เป็น PencilIcon) */}
+                                    <PencilIcon className="w-5 h-5" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-gray-700 mb-4 text-lg leading-relaxed">
+                              {question.questionText}
+                            </p>
+
+                            {/* Answers */}
+                            {(question.comments || []).length > 0 && (
+                              <div className="mt-4">
+                                <button
+                                  onClick={() => toggleComments(`question_${question._id}`)}
+                                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium mb-3 text-sm"
+                                >
+                                  {expandedComments[`question_${question._id}`] ? (
+                                    <>
+                                      <ChevronDoubleUpIcon className="h-4 w-4" />
+                                      ซ่อนความคิดเห็น ({question.comments.length})
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDoubleDownIcon className="h-4 w-4" />
+                                      แสดงความคิดเห็น ({question.comments.length})
+                                    </>
+                                  )}
+                                </button>
+                                {expandedComments[`question_${question._id}`] && (
+                                  <div className="space-y-2">
+                                    {[...question.comments]
+                                      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                      .map((comment, index) => {
+                                        const isCommentOwner = user?.username === comment.username
+
+                                        return (
+                                          <div
+                                            key={index}
+                                            className="ml-6 p-3 bg-[#dbdbfb]  rounded-lg border-l-4 border-[#26268c]"
+                                          >
+                                            {/* ถ้ากำลังแก้ไข comment นี้ */}
+                                            {editingQuestionComment === comment._id ? (
+                                              <div className="space-y-2">
+                                                <textarea
+                                                  value={editCommentText}
+                                                  onChange={(e) =>
+                                                    setEditCommentText(e.target.value)
+                                                  }
+                                                  className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                                                  rows={3}
+                                                />
+                                                <div className="flex gap-3">
+                                                  <button
+                                                    onClick={() =>
+                                                      handleSaveEditQuestionComment(
+                                                        comment._id
+                                                      )
+                                                    }
+                                                    className="p-1.5 bg-[#26268c] text-white rounded-md hover:bg-[#1f1f81] transition-colors"
+                                                    title="บันทึก"
+                                                  >
+                                                    <CheckIcon className="h-4 w-4" />
+                                                  </button>
+                                                  <button
+                                                    onClick={handleCancelEditComment}
+                                                    className="p-1.5 bg-[#8c8ae3] text-black rounded-md hover:bg-[#8180dc] transition-colors"
+                                                    title="ยกเลิก"
+                                                  >
+                                                    <XMarkIcon className="h-4 w-4" />
+                                                  </button>
+                                                  {/* mark tester */}
+                                                  <button
+                                                    onClick={() =>
+                                                      handleDeleteQuestionComment(
+                                                        comment._id
+                                                      )
+                                                    }
+                                                    className="p-1.5 bg-[#f8ad1f] text-gray-700 rounded-md hover:bg-[#e29a15] transition-colors"
+                                                    title="ยกเลิก"
+                                                  >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <>
+                                                <div className="flex justify-between items-start mb-1">
+                                                  <div className="flex items-center gap-2">
+                                                    {/* Profile Image */}
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                                      {userProfiles[comment.username] ? (
+                                                        <img
+                                                          src={userProfiles[comment.username]}
+                                                          alt={comment.username}
+                                                          className="w-full h-full object-cover"
+                                                          onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "/default-avatar.png";
+                                                          }}
+                                                        />
+                                                      ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                                                        </svg>
+                                                      )}
+                                                    </div>
+                                                    {/* Owner */}
+                                                    <span className={`font-semibold ${isCommentOwner ? "text-black" : "text-black"}`}>
+                                                      {comment.username}
+                                                      {isCommentOwner && (
+                                                        <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                                          คุณ
+                                                        </span>
+                                                      )}
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-gray-600 text-xs">
+                                                      {new Date(
+                                                        comment.createdAt
+                                                      ).toLocaleDateString("th-TH")}
+                                                    </span>
+                                                    {isCommentOwner && (
+                                                      <div className="flex gap-1">
+                                                        <button
+                                                          onClick={() =>
+                                                            handleStartEditQuestionComment(
+                                                              comment
+                                                            )
+                                                          }
+                                                          className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                                                          title="แก้ไข"
+                                                        >
+                                                          <PencilIcon className="h-3.5 w-3.5" />
+                                                        </button>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                                <p className="text-gray-800 text-sm">
+                                                  {comment.commentText}
+                                                </p>
+                                              </>
+                                            )}
+                                          </div>
+                                        )
+                                      })
+                                    }
+                                  </div>
+
+                                )}
+                              </div>
+                            )}
+                            {/* Reply Input */}
+                            <div className="mt-3 relative">
+                              <input
+                                type="text"
+                                placeholder={
+                                  user?.token
+                                    ? "แสดงความคิดเห็น..."
+                                    : "เข้าสู่ระบบเพื่อแสดงความคิดเห็น"
+                                }
+                                value={
+                                  replyContents[`question_${question._id}`] ||
+                                  ""
+                                }
+                                onChange={(e) =>
+                                  setReplyContents({
+                                    ...replyContents,
+                                    [`question_${question._id}`]:
+                                      e.target.value,
+                                  })
+                                }
+                                disabled={!user?.token}
+                                className="w-full p-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleReply(
+                                      "question",
+                                      question._id,
+                                      replyContents[
+                                      `question_${question._id}`
+                                      ] || ""
+                                    );
+                                  }
+                                }}
+                              />
+                              <button
+                                onClick={() =>
+                                  handleReply(
+                                    "question",
+                                    question._id,
+                                    replyContents[
+                                    `question_${question._id}`
+                                    ] || ""
+                                  )
+                                }
+                                disabled={
+                                  !user?.token ||
+                                  !replyContents[
+                                    `question_${question._id}`
+                                  ]?.trim()
+                                }
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <PaperAirplaneIcon className="h-5 w-5 text-blue-600" />
+                              </button>
+                            </div>
+                          </>
+                          {/* )} */}
                         </div>
-                        <p className="text-gray-700">{reply.answer}</p>
-                      </div>
-                    ))}
-
-                    {/* Answer Form */}
-                    <div
-                      className="mt-3  relative
-                    "
-                    >
-                      <input
-                        type="text"
-                        placeholder="ตอบคำถาม..."
-                        value={replyContents[`question_${question.id}`] || ""}
-                        onChange={(e) =>
-                          setReplyContents({
-                            ...replyContents,
-                            [`question_${question.id}`]: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      />
-                      <PaperAirplaneIcon
-                        onClick={() =>
-                          handleReply(
-                            "question",
-                            question.id,
-                            replyContents[`question_${question.id}`] || ""
-                          )
-                        }
-                        className="h-5 w-5 text-gray-500 hover:text-[#ababab] absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer transition-colors "
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+                      );
+                    })
+                  )}
+                </div>
+              </section>
+            </div>
           </div>
         </div>
       </div>
