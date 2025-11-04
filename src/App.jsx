@@ -11,8 +11,7 @@ import FormSubject from "./Components/Pages/Course/FormSubject";
 import Register from "./Components/Pages/Auth/Register";
 import Login from "./Components/Pages/Auth/Login";
 
-//admin
-// import HomepageAdmin from "./components/pages/admin/HomepageAdmin";
+
 
 //user
 import HomepageUser from "./Components/Pages/User/HomepageUser";

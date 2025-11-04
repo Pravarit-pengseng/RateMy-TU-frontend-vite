@@ -34,7 +34,7 @@ function ReviewSub() {
   const [openId, setOpenId] = useState(null);
   const [activeTab, setActiveTab] = useState("review");
 
-  // --- 2. State สำหรับแก้ไข comment ---
+  //  State สำหรับแก้ไข comment
   const [editingReviewComment, setEditingReviewComment] = useState(null);
   const [editingQuestionComment, setEditingQuestionComment] = useState(null);
   const [editCommentText, setEditCommentText] = useState("");
@@ -43,7 +43,7 @@ function ReviewSub() {
   const [reviews, setReviews] = useState([]);
   const [questions, setQuestions] = useState([]);
 
-  // --- 3. (แก้ไข) State สำหรับฟอร์มรีวิว (เพิ่ม _id) ---
+  //  State สำหรับฟอร์มรีวิว (เพิ่ม _id)
   const initialReviewState = {
     _id: null,
     homework: 0,
@@ -58,7 +58,7 @@ function ReviewSub() {
   };
   const [newReview, setNewReview] = useState(initialReviewState);
 
-  // --- 4. (แก้ไข) State สำหรับฟอร์มคำถาม (เพิ่ม _id) ---
+  // State สำหรับฟอร์มคำถาม (เพิ่ม _id)
   const initialQuestionState = {
     _id: null,
     postText: "",
@@ -70,9 +70,8 @@ function ReviewSub() {
   const [userProfiles, setUserProfiles] = useState({}); // เก็บ profile ของแต่ละ user
 
   // Debug: ดู userProfiles state เมื่อเปลี่ยน
- 
-  const loadUserProfile = async (username) => {
 
+  const loadUserProfile = async (username) => {
     try {
       const response = await axios.get(`${API}/profile/${username}`);
 
@@ -80,7 +79,7 @@ function ReviewSub() {
         const profileImageUrl = response.data.profileImage;
 
         // ใช้ callback เพื่อตรวจสอบว่ามีใน cache แล้วหรือไม่
-        setUserProfiles(prev => {
+        setUserProfiles((prev) => {
           // ถ้ามีแล้ว ไม่ต้อง update
           if (prev[username]) {
             return prev;
@@ -88,18 +87,23 @@ function ReviewSub() {
 
           return {
             ...prev,
-            [username]: profileImageUrl || null
+            [username]: profileImageUrl || null,
           };
         });
       }
     } catch (error) {
-      console.error("  Failed to load profile for:", username, "->", error.message);
+      console.error(
+        "  Failed to load profile for:",
+        username,
+        "->",
+        error.message
+      );
       // ถ้าดึงไม่ได้ให้เก็บเป็น null
-      setUserProfiles(prev => {
+      setUserProfiles((prev) => {
         if (prev[username] !== undefined) return prev;
         return {
           ...prev,
-          [username]: null
+          [username]: null,
         };
       });
     }
@@ -116,9 +120,7 @@ function ReviewSub() {
           const data = res.data;
           setUserProfile({
             username: data.username || "",
-            profileImage: data.profileImage
-              ? data.profileImage.url
-              : "",
+            profileImage: data.profileImage ? data.profileImage.url : "",
           });
         } catch (err) {
           console.error("Load user profile error:", err);
@@ -143,9 +145,9 @@ function ReviewSub() {
       const usernames = new Set();
 
       // รวบรวม username จาก review comments
-      reviews.forEach(review => {
+      reviews.forEach((review) => {
         if (review.comments) {
-          review.comments.forEach(comment => {
+          review.comments.forEach((comment) => {
             if (comment.username) {
               usernames.add(comment.username);
             }
@@ -154,9 +156,9 @@ function ReviewSub() {
       });
 
       // รวบรวม username จาก question comments
-      questions.forEach(question => {
+      questions.forEach((question) => {
         if (question.comments) {
-          question.comments.forEach(comment => {
+          question.comments.forEach((comment) => {
             if (comment.username) {
               usernames.add(comment.username);
             }
@@ -164,21 +166,19 @@ function ReviewSub() {
         }
       });
 
-
       // โหลด profile ของแต่ละคน (เฉพาะที่ยังไม่เคยโหลด)
-      usernames.forEach(username => {
+      usernames.forEach((username) => {
         if (!loadedUsersRef.current.has(username)) {
           loadedUsersRef.current.add(username);
           loadUserProfile(username);
-        } 
+        }
       });
     };
 
     if (reviews.length > 0 || questions.length > 0) {
       loadAllProfiles();
-    } 
+    }
   }, [reviews, questions]);
-
 
   const loadCourse = async () => {
     try {
@@ -210,7 +210,6 @@ function ReviewSub() {
 
       setReviews(reviewsWithComments);
     } catch {
-      // console.error("Load reviews error:", err);
       setReviews([]);
     }
   };
@@ -240,7 +239,7 @@ function ReviewSub() {
     }
   };
 
-  // ✅ Fixed Like Handler
+  // Fixed Like Handler
   const handleLike = async (reviewId) => {
     if (!user?.token) {
       toast.error("กรุณาเข้าสู่ระบบก่อน");
@@ -280,11 +279,11 @@ function ReviewSub() {
       prevReviews.map((r) =>
         r._id === reviewId
           ? {
-            ...r,
-            like: newLikes,
-            disLike: newDislikes,
-            userReaction: newReaction,
-          }
+              ...r,
+              like: newLikes,
+              disLike: newDislikes,
+              userReaction: newReaction,
+            }
           : r
       )
     );
@@ -308,7 +307,7 @@ function ReviewSub() {
     }
   };
 
-  // ✅ Fixed Dislike Handler
+  //  Fixed Dislike Handler
   const handleDislike = async (reviewId) => {
     if (!user?.token) {
       toast.error("กรุณาเข้าสู่ระบบก่อน");
@@ -348,11 +347,11 @@ function ReviewSub() {
       prevReviews.map((r) =>
         r._id === reviewId
           ? {
-            ...r,
-            like: newLikes,
-            disLike: newDislikes,
-            userReaction: newReaction,
-          }
+              ...r,
+              like: newLikes,
+              disLike: newDislikes,
+              userReaction: newReaction,
+            }
           : r
       )
     );
@@ -371,21 +370,19 @@ function ReviewSub() {
     } catch (err) {
       console.error("Update dislike error:", err);
       toast.error("ไม่สามารถอัปเดตการไม่ถูกใจได้");
-      // Revert on error
       loadReviews();
     }
   };
 
-  // --- 5. (แก้ไข) handleRatingChange (ลบ logic ของ editingReview) ---
+  //  handleRatingChange
   const handleRatingChange = (category, value) => {
-    // For new review (and edit mode via sidebar)
     setNewReview((prev) => ({
       ...prev,
       [category]: value,
     }));
   };
 
-  // --- 6. (แก้ไข) handleSubmitReview (รองรับการสร้างและแก้ไข) ---
+  //  handleSubmitReview
   const handleSubmitReview = async (e) => {
     e.preventDefault();
 
@@ -435,13 +432,11 @@ function ReviewSub() {
       };
 
       if (newReview._id) {
-        // --- UPDATE (EDIT) LOGIC ---
         await axios.put(`${API}/editpost/${newReview._id}`, reviewData, {
           headers: { authtoken: user.token },
         });
         toast.success("แก้ไขโพสต์รีวิวเสร็จสิ้น");
       } else {
-        // --- CREATE (NEW POST) LOGIC ---
         await axios.post(`${API}/postreview/${courseCode}`, reviewData, {
           headers: { authtoken: user.token },
         });
@@ -450,7 +445,7 @@ function ReviewSub() {
 
       setNewReview(initialReviewState); // รีเซ็ตฟอร์ม
       loadReviews();
-      loadCourse(); // Reload to update avg score
+      loadCourse();
     } catch (err) {
       console.error("Submit/Update review error:", err);
       const errorMsg =
@@ -461,13 +456,13 @@ function ReviewSub() {
     }
   };
 
-  // --- 7. (แก้ไข) handleSubmitQuestion (รองรับการสร้างและแก้ไข) ---
+  //  รองรับการสร้างและแก้ไข
   const handleSubmitQuestion = async (e) => {
     e.preventDefault();
 
     if (!user?.token) {
       toast.error("กรุณาเข้าสู่ระบบก่อนถามคำถาม");
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -482,8 +477,6 @@ function ReviewSub() {
       };
 
       if (newQuestion._id) {
-        // --- UPDATE (EDIT) LOGIC ---
-        // (ใช้ API endpoint จากโค้ดเดิม)
         await axios.put(
           `${API}/updateQuestion/${newQuestion._id}`,
           questionData,
@@ -493,8 +486,6 @@ function ReviewSub() {
         );
         toast.success("แก้ไขโพสต์คำถามสำเร็จ");
       } else {
-        // --- CREATE (NEW POST) LOGIC ---
-        // (ใช้ API endpoint จากโค้ดเดิม)
         await axios.post(`${API}/question/${courseCode}`, questionData, {
           headers: { authtoken: user.token },
         });
@@ -569,13 +560,6 @@ function ReviewSub() {
       toast.error("ไม่สามารถแสดงความคิดเห็นได้");
     }
   };
-
-  // --- 8. (ลบ) ฟังก์ชัน Inline Edit (ไม่ใช้แล้ว) ---
-  // const handleEditReview = (review) => { ... };
-  // const handleUpdateReview = async () => { ... };
-
-  // --- 9. (แก้ไข) handleDeleteReview (ให้แสดง Toast) ---
-  // ========== ฟังก์ชันใหม่สำหรับแก้ไข Comment ==========
 
   // เริ่มแก้ไข comment ของ review
   const handleStartEditReviewComment = (comment) => {
@@ -656,10 +640,7 @@ function ReviewSub() {
       toast.error("กรุณาเข้าสู่ระบบก่อน");
       return;
     }
-    console.log("delete review success log")
-    // if (!window.confirm("คุณต้องการลบความคิดเห็นนี้ใช่หรือไม่?")) {
-    //   return;
-    // }
+    console.log("delete review success log");
 
     try {
       await axios.delete(`${API}/deleteReviewComment/${commentId}`, {
@@ -679,10 +660,7 @@ function ReviewSub() {
       toast.error("กรุณาเข้าสู่ระบบก่อน");
       return;
     }
-    console.log("delete question success log")
-    // if (!window.confirm("คุณต้องการลบคำตอบนี้ใช่หรือไม่?")) {
-    //   return;
-    // }
+    console.log("delete question success log");
 
     try {
       await axios.delete(`${API}/deleteQuestioncomment/${commentId}`, {
@@ -696,17 +674,14 @@ function ReviewSub() {
     }
   };
 
-  // ========== สิ้นสุดฟังก์ชันใหม่ ==========
-
   const toggleComments = (id) => {
-    setExpandedComments(prev => ({
+    setExpandedComments((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
   // ฟังก์ชันดึง profile ของ user แต่ละคน
-
 
   const handleDeleteReview = async (reviewId) => {
     if (!user?.token) {
@@ -719,54 +694,50 @@ function ReviewSub() {
         headers: { authtoken: user.token },
       });
 
-      toast.success("ลบโพสต์รีวิวเสร็จสิ้น")
+      toast.success("ลบโพสต์รีวิวเสร็จสิ้น");
       loadReviews();
       loadCourse(); // Reload to update avg score
 
       // เคลียร์ฟอร์มใน Sidebar ที่นี่ หลังจากลบสำเร็จ
       setNewReview(initialReviewState);
-
     } catch (err) {
       console.error("Delete review error:", err);
       toast.error("ไม่สามารถลบรีวิวได้");
     }
-    
   };
 
-
-
-  // --- 12. (แก้ไข) handleDeleteQuestion (ให้แสดง Toast) ---
-  const handleDeleteQuestion = async (questionId) => {
+  // handleDeleteQuestion (ให้แสดง Toast)
+  const handleDeleteQuestion = async (questionId,commentId) => {
     if (!user?.token) {
       toast.error("กรุณาเข้าสู่ระบบก่อน");
       return;
     }
 
-try {
-      // (ใช้ API endpoint จากโค้ดเดิม)
+    try {
       await axios.delete(`${API}/deleteQuestion/${questionId}`, {
         headers: { authtoken: user.token },
       });
 
+      await axios.delete(`${API}/deleteReviewComment/${commentId}`, {
+        headers: { authtoken: user.token },
+      });
       toast.success("ลบโพสต์คำถามเสร็จสิ้น");
       loadQuestions();
 
       // เคลียร์ฟอร์มใน Sidebar ที่นี่ หลังจากลบสำเร็จ
       setNewQuestion(initialQuestionState);
-
     } catch (err) {
       console.error("Delete question error:", err);
       toast.error("ไม่สามารถลบโพสต์คำถามได้");
     }
   };
 
- 
-  // --- 14. (เพิ่ม) ฟังก์ชันสำหรับเริ่มแก้ไขใน Sidebar ---
+  // ฟังก์ชันสำหรับเริ่มแก้ไขใน Sidebar
   const handleStartEditInSidebar = (review) => {
-    setIsOpen(true); // 1. เปิด Sidebar
-    setActiveTab("review"); // 2. สลับไปแท็บรีวิว
+    setIsOpen(true); // เปิด Sidebar
+    setActiveTab("review"); //  สลับไปแท็บรีวิว
 
-    // 3. นำข้อมูลรีวิวมาใส่ในฟอร์ม
+    //  นำข้อมูลรีวิวมาใส่ในฟอร์ม
     setNewReview({
       _id: review._id,
       comment: review.postText,
@@ -782,16 +753,15 @@ try {
   };
 
   const handleStartEditQuestion = (question) => {
-    setIsOpen(true); // 1. เปิด Sidebar
-    setActiveTab("question"); // 2. สลับไปแท็บคำถาม
+    setIsOpen(true); // เปิด Sidebar
+    setActiveTab("question"); //  สลับไปแท็บคำถาม
 
-    // 3. นำข้อมูลคำถามมาใส่ในฟอร์ม
+    // นำข้อมูลคำถามมาใส่ในฟอร์ม
     setNewQuestion({
       _id: question._id,
-      postText: question.questionText, 
+      postText: question.questionText,
     });
   };
-
 
   const RatingStars = ({ rating, onRatingChange, readOnly = false }) => {
     return (
@@ -802,10 +772,11 @@ try {
             type="button"
             onClick={() => !readOnly && onRatingChange && onRatingChange(star)}
             disabled={readOnly}
-            className={`${readOnly
-              ? "cursor-default"
-              : "cursor-pointer hover:scale-110 transition-transform"
-              } ${star <= rating ? "text-yellow-400" : "text-gray-300"} text-xl`}
+            className={`${
+              readOnly
+                ? "cursor-default"
+                : "cursor-pointer hover:scale-110 transition-transform"
+            } ${star <= rating ? "text-yellow-400" : "text-gray-300"} text-xl`}
           >
             ★
           </button>
@@ -830,8 +801,9 @@ try {
       <div className="flex min-h-screen bg-[#2d2f3b]">
         {/* Sidebar */}
         <div
-          className={`bg-[#ffffff] shadow-lg border-r border-gray-200 transition-all duration-300 ${isOpen ? "w-lg" : "w-14"
-            } flex flex-col`}
+          className={`bg-[#ffffff] shadow-lg border-r border-gray-200 transition-all duration-300 ${
+            isOpen ? "w-lg" : "w-14"
+          } flex flex-col`}
         >
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -845,7 +817,7 @@ try {
           </button>
 
           {isOpen && (
-            <div className="p-4 overflow-y-auto w-lg">
+            <div className="p-4 overflow-y-auto w-lg sm:w-screen  md:w-lg">
               <header className="text-center mb-8">
                 <div className="bg-gray-100 p-4 ">
                   <h2 className="text-xl font-semibold">{course.name}</h2>
@@ -866,19 +838,21 @@ try {
                 <div className="flex mb-6 gap-2">
                   <button
                     onClick={() => setActiveTab("review")}
-                    className={`py-2 px-4 font-semibold transition-colors rounded-md ${activeTab === "review"
-                      ? "bg-[#26268c] text-white"
-                      : "text-gray-700 hover:bg-gray-200"
-                      }`}
+                    className={`py-2 px-4 font-semibold transition-colors rounded-md ${
+                      activeTab === "review"
+                        ? "bg-[#26268c] text-white"
+                        : "text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     โพสต์รีวิว
                   </button>
                   <button
                     onClick={() => setActiveTab("question")}
-                    className={`py-2 px-4 font-semibold transition-colors rounded-md ${activeTab === "question"
-                      ? "bg-[#26268c] text-white"
-                      : "text-gray-700 hover:bg-gray-200"
-                      }`}
+                    className={`py-2 px-4 font-semibold transition-colors rounded-md ${
+                      activeTab === "question"
+                        ? "bg-[#26268c] text-white"
+                        : "text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     โพสต์คำถาม
                   </button>
@@ -1046,14 +1020,15 @@ try {
                       </div>
                     </div>
 
-                    {/* --- 15. (แก้ไข) ปุ่มสำหรับฟอร์มรีวิว (แบบไดนามิก) --- */}
+                    {/*  ปุ่มสำหรับฟอร์มรีวิว */}
                     <div className="flex flex-col gap-2">
                       <button
                         type="submit"
-                        className={`w-full text-white px-6 py-3 rounded-md transition-colors font-medium ${newReview._id
-                          ? "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนแก้ไข
-                          : "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนโพสต์ใหม่
-                          }`}
+                        className={`w-full text-white px-6 py-3 rounded-md transition-colors font-medium ${
+                          newReview._id
+                            ? "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนแก้ไข
+                            : "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนโพสต์ใหม่
+                        }`}
                       >
                         {newReview._id ? "บันทึกการแก้ไข" : "โพสต์รีวิว"}
                       </button>
@@ -1081,7 +1056,6 @@ try {
                         </>
                       )}
                     </div>
-                    {/* --- สิ้นสุดปุ่มไดนามิก --- */}
                   </form>
                 )}
 
@@ -1098,11 +1072,14 @@ try {
                       <label className="block text-sm font-medium mb-2">
                         ถามคำถาม...
                       </label>
-                      {/* --- 16. (แก้ไข) Input เป็น Textarea และใช้ state object --- */}
+                      {/* input เป็น Textarea และใช้ state object */}
                       <textarea
                         value={newQuestion.postText}
                         onChange={(e) =>
-                          setNewQuestion({ ...newQuestion, postText: e.target.value })
+                          setNewQuestion({
+                            ...newQuestion,
+                            postText: e.target.value,
+                          })
                         }
                         placeholder="มีคำถามอะไรเกี่ยวกับวิชานี้?"
                         className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1110,14 +1087,14 @@ try {
                       />
                     </div>
 
-                    {/* --- 17. (แก้ไข) ปุ่มสำหรับฟอร์มคำถาม (แบบไดนามิก) --- */}
                     <div className="flex flex-col gap-2">
                       <button
                         type="submit"
-                        className={`w-full text-white px-6 py-3 rounded-md transition-colors font-medium ${newQuestion._id
-                          ? "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนแก้ไข
-                          : "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนโพสต์ใหม่ (สีเดิม)
-                          }`}
+                        className={`w-full text-white px-6 py-3 rounded-md transition-colors font-medium ${
+                          newQuestion._id
+                            ? "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนแก้ไข
+                            : "bg-[#26268c] hover:bg-[#151563]" // สีปุ่มตอนโพสต์ใหม่ (สีเดิม)
+                        }`}
                       >
                         {newQuestion._id ? "บันทึกการแก้ไข" : "ถามคำถาม"}
                       </button>
@@ -1136,7 +1113,7 @@ try {
                           <button
                             type="button"
                             onClick={() => {
-                              handleDeleteQuestion(newQuestion._id);
+                              handleDeleteQuestion(newQuestion._id,);
                             }}
                             className="w-full bg-[#f8ad1f] text-white px-6 py-2 rounded-md hover:bg-[#e79e17] transition-colors font-medium"
                           >
@@ -1145,7 +1122,6 @@ try {
                         </>
                       )}
                     </div>
-                    {/* --- สิ้นสุดปุ่มไดนามิก --- */}
                   </form>
                 )}
               </section>
@@ -1196,7 +1172,12 @@ try {
                                       }}
                                     />
                                   ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                      className="w-full h-full text-gray-400 p-1"
+                                    >
                                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                                     </svg>
                                   )}
@@ -1214,9 +1195,11 @@ try {
                               {/* Edit/Delete Buttons - Only show for owner */}
                               {isOwner && (
                                 <div className="flex gap-1">
-                                  {/* --- 19. (แก้ไข) onClick ปุ่มแก้ไขรีวิว --- */}
+                                  {/*  onClick ปุ่มแก้ไขรีวิว */}
                                   <button
-                                    onClick={() => handleStartEditInSidebar(review)}
+                                    onClick={() =>
+                                      handleStartEditInSidebar(review)
+                                    }
                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                                     title="แก้ไข"
                                   >
@@ -1249,13 +1232,15 @@ try {
                               <button
                                 onClick={() => handleLike(review._id)}
                                 disabled={!user?.token}
-                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${userReaction === "like"
-                                  ? "bg-red-50 text-red-600"
-                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                  } ${!user?.token
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
+                                  userReaction === "like"
+                                    ? "bg-red-50 text-red-600"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                } ${
+                                  !user?.token
                                     ? "opacity-50 cursor-not-allowed"
                                     : "cursor-pointer"
-                                  }`}
+                                }`}
                               >
                                 {userReaction === "like" ? (
                                   <HeartIconSolid className="w-5 h-5" />
@@ -1268,22 +1253,22 @@ try {
                               <button
                                 onClick={() => handleDislike(review._id)}
                                 disabled={!user?.token}
-                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${userReaction === "dislike"
-                                  ? "bg-blue-50 text-blue-600"
-                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                  } ${!user?.token
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
+                                  userReaction === "dislike"
+                                    ? "bg-blue-50 text-blue-600"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                } ${
+                                  !user?.token
                                     ? "opacity-50 cursor-not-allowed"
                                     : "cursor-pointer"
-                                  }`}
+                                }`}
                               >
                                 {userReaction === "dislike" ? (
                                   <FaceFrownIconSolid className="w-5 h-5" />
                                 ) : (
                                   <FaceFrownIcon className="w-5 h-5" />
                                 )}
-                                <span className="font-medium">
-                                  {dislikes}
-                                </span>
+                                <span className="font-medium">{dislikes}</span>
                               </button>
 
                               <button
@@ -1378,7 +1363,9 @@ try {
                             {(review.comments || []).length > 0 && (
                               <div className="mt-4 space-y-2">
                                 <button
-                                  onClick={() => toggleComments(`review_${review._id}`)}
+                                  onClick={() =>
+                                    toggleComments(`review_${review._id}`)
+                                  }
                                   className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium mb-3 text-sm"
                                 >
                                   {expandedComments[`review_${review._id}`] ? (
@@ -1396,9 +1383,14 @@ try {
                                 {expandedComments[`review_${review._id}`] && (
                                   <div className="space-y-2">
                                     {[...review.comments]
-                                      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                      .sort(
+                                        (a, b) =>
+                                          new Date(b.createdAt) -
+                                          new Date(a.createdAt)
+                                      )
                                       .map((comment, index) => {
-                                        const isCommentOwner = user?.username === comment.username
+                                        const isCommentOwner =
+                                          user?.username === comment.username;
 
                                         return (
                                           <div
@@ -1406,24 +1398,35 @@ try {
                                             className="ml-6 p-3 bg-[#dbdbfb]  rounded-lg border-l-4 border-[#26268c]"
                                           >
                                             {/* กำลังแก้ไข comment นี้ */}
-                                            {editingReviewComment === comment._id ? (
+                                            {editingReviewComment ===
+                                            comment._id ? (
                                               <div className="space-y-2">
                                                 <textarea
                                                   value={editCommentText}
-                                                  onChange={(e) => setEditCommentText(e.target.value)}
+                                                  onChange={(e) =>
+                                                    setEditCommentText(
+                                                      e.target.value
+                                                    )
+                                                  }
                                                   className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
                                                   rows={3}
                                                 />
                                                 <div className="flex gap-3">
                                                   <button
-                                                    onClick={() => handleSaveEditReviewComment(comment._id)}
+                                                    onClick={() =>
+                                                      handleSaveEditReviewComment(
+                                                        comment._id
+                                                      )
+                                                    }
                                                     className="p-1.5 bg-[#26268c] text-white rounded-md hover:bg-[#1f1f81] transition-colors"
                                                     title="บันทึก"
                                                   >
                                                     <CheckIcon className="h-4 w-4" />
                                                   </button>
                                                   <button
-                                                    onClick={handleCancelEditComment}
+                                                    onClick={
+                                                      handleCancelEditComment
+                                                    }
                                                     className="p-1.5 bg-[#8c8ae3] text-black rounded-md hover:bg-[#8180dc] transition-colors"
                                                     title="ยกเลิก"
                                                   >
@@ -1448,23 +1451,42 @@ try {
                                                   <div className="flex items-center gap-2">
                                                     {/* Profile Image */}
                                                     <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                                                      {userProfiles[comment.username] ? (
+                                                      {userProfiles[
+                                                        comment.username
+                                                      ] ? (
                                                         <img
-                                                          src={userProfiles[comment.username]}
+                                                          src={
+                                                            userProfiles[
+                                                              comment.username
+                                                            ]
+                                                          }
                                                           alt={comment.username}
                                                           className="w-full h-full object-cover"
                                                           onError={(e) => {
-                                                            e.target.onerror = null;
-                                                            e.target.src = "/default-avatar.png";
+                                                            e.target.onerror =
+                                                              null;
+                                                            e.target.src =
+                                                              "/default-avatar.png";
                                                           }}
                                                         />
                                                       ) : (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                                        <svg
+                                                          xmlns="http://www.w3.org/2000/svg"
+                                                          viewBox="0 0 24 24"
+                                                          fill="currentColor"
+                                                          className="w-full h-full text-gray-400 p-1"
+                                                        >
                                                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                                                         </svg>
                                                       )}
                                                     </div>
-                                                    <span className={`font-semibold ${isCommentOwner ? "text-black" : "text-black"}`}>
+                                                    <span
+                                                      className={`font-semibold ${
+                                                        isCommentOwner
+                                                          ? "text-black"
+                                                          : "text-black"
+                                                      }`}
+                                                    >
                                                       {comment.username}
                                                       {isCommentOwner && (
                                                         <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
@@ -1477,12 +1499,18 @@ try {
                                                     <span className="text-gray-600 text-xs">
                                                       {new Date(
                                                         comment.createdAt
-                                                      ).toLocaleDateString("th-TH")}
+                                                      ).toLocaleDateString(
+                                                        "th-TH"
+                                                      )}
                                                     </span>
                                                     {isCommentOwner && (
                                                       <div className="flex gap-1">
                                                         <button
-                                                          onClick={() => handleStartEditReviewComment(comment)}
+                                                          onClick={() =>
+                                                            handleStartEditReviewComment(
+                                                              comment
+                                                            )
+                                                          }
                                                           className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                                                           title="แก้ไข"
                                                         >
@@ -1498,9 +1526,8 @@ try {
                                               </>
                                             )}
                                           </div>
-                                        )
-                                      })
-                                    }
+                                        );
+                                      })}
                                   </div>
                                 )}
                               </div>
@@ -1532,7 +1559,7 @@ try {
                                       "review",
                                       review._id,
                                       replyContents[`review_${review._id}`] ||
-                                      ""
+                                        ""
                                     );
                                   }
                                 }}
@@ -1542,15 +1569,12 @@ try {
                                   handleReply(
                                     "review",
                                     review._id,
-                                    replyContents[`review_${review._id}`] ||
-                                    ""
+                                    replyContents[`review_${review._id}`] || ""
                                   )
                                 }
                                 disabled={
                                   !user?.token ||
-                                  !replyContents[
-                                    `review_${review._id}`
-                                  ]?.trim()
+                                  !replyContents[`review_${review._id}`]?.trim()
                                 }
                                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
@@ -1605,7 +1629,12 @@ try {
                                       }}
                                     />
                                   ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                      className="w-full h-full text-gray-400 p-1"
+                                    >
                                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                                     </svg>
                                   )}
@@ -1646,27 +1675,40 @@ try {
                             {(question.comments || []).length > 0 && (
                               <div className="mt-4">
                                 <button
-                                  onClick={() => toggleComments(`question_${question._id}`)}
+                                  onClick={() =>
+                                    toggleComments(`question_${question._id}`)
+                                  }
                                   className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium mb-3 text-sm"
                                 >
-                                  {expandedComments[`question_${question._id}`] ? (
+                                  {expandedComments[
+                                    `question_${question._id}`
+                                  ] ? (
                                     <>
                                       <ChevronDoubleUpIcon className="h-4 w-4" />
-                                      ซ่อนความคิดเห็น ({question.comments.length})
+                                      ซ่อนความคิดเห็น (
+                                      {question.comments.length})
                                     </>
                                   ) : (
                                     <>
                                       <ChevronDoubleDownIcon className="h-4 w-4" />
-                                      แสดงความคิดเห็น ({question.comments.length})
+                                      แสดงความคิดเห็น (
+                                      {question.comments.length})
                                     </>
                                   )}
                                 </button>
-                                {expandedComments[`question_${question._id}`] && (
+                                {expandedComments[
+                                  `question_${question._id}`
+                                ] && (
                                   <div className="space-y-2">
                                     {[...question.comments]
-                                      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                      .sort(
+                                        (a, b) =>
+                                          new Date(b.createdAt) -
+                                          new Date(a.createdAt)
+                                      )
                                       .map((comment, index) => {
-                                        const isCommentOwner = user?.username === comment.username
+                                        const isCommentOwner =
+                                          user?.username === comment.username;
 
                                         return (
                                           <div
@@ -1674,12 +1716,15 @@ try {
                                             className="ml-6 p-3 bg-[#dbdbfb]  rounded-lg border-l-4 border-[#26268c]"
                                           >
                                             {/* ถ้ากำลังแก้ไข comment นี้ */}
-                                            {editingQuestionComment === comment._id ? (
+                                            {editingQuestionComment ===
+                                            comment._id ? (
                                               <div className="space-y-2">
                                                 <textarea
                                                   value={editCommentText}
                                                   onChange={(e) =>
-                                                    setEditCommentText(e.target.value)
+                                                    setEditCommentText(
+                                                      e.target.value
+                                                    )
                                                   }
                                                   className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
                                                   rows={3}
@@ -1697,7 +1742,9 @@ try {
                                                     <CheckIcon className="h-4 w-4" />
                                                   </button>
                                                   <button
-                                                    onClick={handleCancelEditComment}
+                                                    onClick={
+                                                      handleCancelEditComment
+                                                    }
                                                     className="p-1.5 bg-[#8c8ae3] text-black rounded-md hover:bg-[#8180dc] transition-colors"
                                                     title="ยกเลิก"
                                                   >
@@ -1723,24 +1770,43 @@ try {
                                                   <div className="flex items-center gap-2">
                                                     {/* Profile Image */}
                                                     <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                                                      {userProfiles[comment.username] ? (
+                                                      {userProfiles[
+                                                        comment.username
+                                                      ] ? (
                                                         <img
-                                                          src={userProfiles[comment.username]}
+                                                          src={
+                                                            userProfiles[
+                                                              comment.username
+                                                            ]
+                                                          }
                                                           alt={comment.username}
                                                           className="w-full h-full object-cover"
                                                           onError={(e) => {
-                                                            e.target.onerror = null;
-                                                            e.target.src = "/default-avatar.png";
+                                                            e.target.onerror =
+                                                              null;
+                                                            e.target.src =
+                                                              "/default-avatar.png";
                                                           }}
                                                         />
                                                       ) : (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                                        <svg
+                                                          xmlns="http://www.w3.org/2000/svg"
+                                                          viewBox="0 0 24 24"
+                                                          fill="currentColor"
+                                                          className="w-full h-full text-gray-400 p-1"
+                                                        >
                                                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                                                         </svg>
                                                       )}
                                                     </div>
                                                     {/* Owner */}
-                                                    <span className={`font-semibold ${isCommentOwner ? "text-black" : "text-black"}`}>
+                                                    <span
+                                                      className={`font-semibold ${
+                                                        isCommentOwner
+                                                          ? "text-black"
+                                                          : "text-black"
+                                                      }`}
+                                                    >
                                                       {comment.username}
                                                       {isCommentOwner && (
                                                         <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
@@ -1753,7 +1819,9 @@ try {
                                                     <span className="text-gray-600 text-xs">
                                                       {new Date(
                                                         comment.createdAt
-                                                      ).toLocaleDateString("th-TH")}
+                                                      ).toLocaleDateString(
+                                                        "th-TH"
+                                                      )}
                                                     </span>
                                                     {isCommentOwner && (
                                                       <div className="flex gap-1">
@@ -1778,11 +1846,9 @@ try {
                                               </>
                                             )}
                                           </div>
-                                        )
-                                      })
-                                    }
+                                        );
+                                      })}
                                   </div>
-
                                 )}
                               </div>
                             )}
@@ -1814,7 +1880,7 @@ try {
                                       "question",
                                       question._id,
                                       replyContents[
-                                      `question_${question._id}`
+                                        `question_${question._id}`
                                       ] || ""
                                     );
                                   }
@@ -1825,9 +1891,8 @@ try {
                                   handleReply(
                                     "question",
                                     question._id,
-                                    replyContents[
-                                    `question_${question._id}`
-                                    ] || ""
+                                    replyContents[`question_${question._id}`] ||
+                                      ""
                                   )
                                 }
                                 disabled={
