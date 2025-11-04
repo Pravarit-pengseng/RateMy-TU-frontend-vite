@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import HeaderBar from "../Layout/HeaderBar";
+import HeaderBar from "../Layout/headerBar";
 import NotFound404 from "../Components/Pages/NotFound404";
 
 const UserRoute = ({ children }) => {
