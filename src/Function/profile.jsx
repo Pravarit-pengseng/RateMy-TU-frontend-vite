@@ -17,3 +17,14 @@ export const removeProfileImage = async (userId, authtoken) =>
   await axios.delete(`${API}/deleteProfile/${userId}`, {
     headers: { authtoken },
   });
+
+export const uploadImage = async (formData) =>
+  await axios.put(
+    `${API}/upload`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );

@@ -10,41 +10,39 @@ import {
   ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/solid";
 
-const pages = [
-  { title: "Home", to: "/" },
-  { title: "Course", to: "/course" },
-];
-
-const authen = [
-  {
-    title: "Register",
-    icon: <UserPlusIcon className="w-5 h-5" />,
-    to: "/register",
-  },
-  {
-    title: "Login",
-    icon: <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />,
-    to: "/login",
-  },
-];
-
-const settings = [
-  { title: "Profile", to: "/profile" },
-  { title: "Logout", to: "/" },
-];
-
 function HeaderBar() {
   const { user } = useSelector((state) => state.user);
   const { username } = useSelector((state) => state.user?.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const pages = [
+    { title: "Home", to: "/" },
+    { title: "Course", to: "/course" },
+  ];
+
+  const authen = [
+    {
+      title: "Register",
+      icon: <UserPlusIcon className="w-5 h-5" />,
+      to: "/register",
+    },
+    {
+      title: "Login",
+      icon: <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />,
+      to: "/login",
+    },
+  ];
+  const settings = [
+    { title: "Profile", to: `/EditProfile/${user.username}` },
+    { title: "Logout", to: "/" },
+  ];
 
   const [userOpen, setUserOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userProfile, setUserProfile] = useState({
     username: "",
-    profileImg: "",
+    profileImage: "",
   });
   useEffect(() => {
     const fetchProfile = async () => {
@@ -54,11 +52,7 @@ function HeaderBar() {
           const data = res.data;
           setUserProfile({
             username: data.username || "",
-            profileImg: data.profileImg
-              ? `${import.meta.env.VITE_APP_API.replace(/\/api$/, "")}${
-                  data.profileImg
-                }`
-              : "",
+            profileImage: data.profileImage ? data.profileImage.url : "",
           });
         } catch (err) {
           console.error("Load user profile error:", err);
@@ -71,13 +65,13 @@ function HeaderBar() {
   const handlelogout = () => {
     setUserOpen(false);
     dispatch(logout());
-    navigate(0);
+    navigate("/");
   };
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-black/5">
-      <div className="max-w-[1400px] mx-auto px-4">
-        <div className="flex items-center justify-between h-[64px]">
+      <div className="max-w-[14500px] mx-5 ">
+        <div className="flex items-center justify-between h-[58px]">
           {/* Logo */}
           <button
             className="flex items-center gap-2"
@@ -95,7 +89,6 @@ function HeaderBar() {
               RateMy TU
             </span>
           </button>
-
           {/* Desktop menu */}
           <div className="hidden md:flex items-center gap-5">
             {pages.map((p, i) => {
@@ -136,14 +129,21 @@ function HeaderBar() {
                   onClick={() => setUserOpen((v) => !v)}
                 >
                   <span className="sr-only">Open user menu</span>
-                  {userProfile.profileImg ? (
+                  {userProfile.profileImage ? (
                     <img
-                      src={userProfile.profileImg}
+                      src={userProfile.profileImage}
                       alt="User"
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-2xl">👤</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="w-full h-full text-gray-400 p-1"
+                    >
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                    </svg>
                   )}
                 </button>
 
