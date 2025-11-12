@@ -26,7 +26,7 @@ import NotFound404 from "./Components/Pages/NotFound404";
 
 import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
-import HeaderBar from "./Layout/HeaderBar";
+import HeaderBar from "./Layout/headerBar";
 import ReviewSub from "./Components/Pages/User/ReviewSub";
 import ImageUpload from "./Function/ImageUpload";
 import EditProfile from "./Components/Pages/Profile/EditProfile";
