@@ -28,7 +28,7 @@ import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
 import HeaderBar from "./Layout/HeaderBar";
 import ReviewSub from "./Components/Pages/User/ReviewSub";
-import ImageUpload from "./Components/ImageUpload";
+import ImageUpload from "./Function/ImageUpload";
 import EditProfile from "./Components/Pages/Profile/EditProfile";
 import ViewProfile from "./Components/Pages/Profile/ViewProfile";
 
@@ -54,18 +54,14 @@ function App() {
   return (
     <BrowserRouter>
       <>
-        <ToastContainer />
+        <ToastContainer
+          position="top-right" // ตำแหน่ง toast
+          autoClose={2500} // ระยะเวลา (มิลลิวินาที)
+          pauseOnHover={false} // ไม่หยุดเมื่อเมาส์ชี้
+          pauseOnFocusLoss={false} // ไม่หยุดเมื่อเปลี่ยนแท็บ
+          closeOnClick={true} // ปิดเมื่อคลิก
+        />
         <Routes>
-          <Route
-            path="*"
-            element={
-              <NotFound404
-                text="The page you’re looking for doesn’t exist."
-                Back="/"
-              />
-            }
-          />
-
           <Route
             path="/upload"
             element={
@@ -95,6 +91,19 @@ function App() {
               </>
             }
           />
+
+          {/* ⭐ เพิ่ม route สำหรับ notification (courseCode เดียว) */}
+          <Route
+            path="/course/:courseCode"
+            element={
+              <>
+                <HeaderBar />
+                <ReviewSub />
+              </>
+            }
+          />
+
+          {/* Route เดิม (courseCode + id) */}
           <Route
             path="/course/:courseCode/:id"
             element={
@@ -149,6 +158,17 @@ function App() {
                 <HeaderBar />
                 <AddSubject />
               </AdminRoute>
+            }
+          />
+
+          {/* ⭐ 404 - ต้องอยู่สุดท้าย */}
+          <Route
+            path="*"
+            element={
+              <NotFound404
+                text="The page you're looking for doesn't exist."
+                Back="/"
+              />
             }
           />
         </Routes>

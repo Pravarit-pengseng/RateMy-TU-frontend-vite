@@ -9,6 +9,7 @@ import {
   UserPlusIcon,
   ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/solid";
+import NotificationDropdown from "./NotificationDropdown";
 
 function HeaderBar() {
   const { user } = useSelector((state) => state.user);
@@ -18,7 +19,7 @@ function HeaderBar() {
   const location = useLocation();
   const pages = [
     { title: "Home", to: "/" },
-    { title: "Course", to: "/course" },
+    { title: "Courses", to: "/course" },
   ];
 
   const authen = [
@@ -109,6 +110,9 @@ function HeaderBar() {
                 </Link>
               );
             })}
+
+            {/* Notification Bell */}
+            {user.length !== 0 && <NotificationDropdown />}
 
             {/* Auth or user */}
             {user.length === 0 ? (

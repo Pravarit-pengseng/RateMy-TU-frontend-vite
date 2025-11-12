@@ -64,18 +64,36 @@ const FormSubject = () => {
   }
 
   return (
-    <div className="bg-[#2d2f3b] min-h-screen  overflow-x-hidden">
-      <div className="max-w-[1200px] mx-auto px-4 py-6">
-        <div className="flex justify-center mb-6">
+    <div className="bg-[#2d2f3b] min-h-screen overflow-x-hidden">
+      <div className="max-w-[1400px] mx-auto  py-6 relative"> {/* <--- เพิ่ม relative */}
+
+        {/* ********** องค์ประกอบตกแต่งรอบๆ Grid ********** */}
+        {/* <span className="absolute top-10 left-10 text-5xl opacity-40 animate-pulse hidden md:block">
+          💻
+        </span> */}
+        <img
+          src="../../../../assets/capibara.png"
+          alt="Capibara"
+          className="absolute top-10 left-175 w-36 h-36 opacity-80 hidden md:block rotate-12" />
+
+        {/* ********************************************** */}
+
+        <div className="flex justify-end mt-5 mb-6 relative z-10 px-3">
           <Search />
         </div>
 
         {subjects.length > 0 ? (
-          <div className="grid grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 gap-3 px-3 
+          sm:grid-cols-2 sm:gap-4
+          md:grid-col-3
+          lg:grid-cols-4 
+          xl:grid-cols-5 
+          "
+          >
             {subjects.map((subject) => (
               <div
                 key={subject._id}
-                className="col-span-12 sm:col-span-6 md:col-span-3"
+                className="col-span-1"
               >
                 <div
                   className="h-full rounded-2xl shadow-md relative bg-white hover:bg-[#F2F2F2] hover:shadow-xl transition cursor-pointer"
@@ -85,7 +103,7 @@ const FormSubject = () => {
                 >
                   {role === "admin" && (
                     <button
-                      className="absolute top-2 right-2 text-gray-500 hover:text-blue-600 hover:bg-black/5 rounded-md p-1"
+                      className="absolute top-2 right-2 text-gray-500 hover:text-blue-600  rounded-md p-1"
                       title="Edit"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -97,17 +115,20 @@ const FormSubject = () => {
                       <PencilSquareIcon className="w-5 h-5 text-gray-600 hover:text-blue-600" />
                     </button>
                   )}
-                  <div className="p-4">
-                    <div className="text-sm text-gray-600">
-                      Code: {subject.courseCode}
+                  <div className="p-4 flex flex-col h-full">
+                    <div className="shrink-0">
+                      <div className="text-sm text-gray-600">
+                        {subject.courseCode}
+                      </div>
+                      <div className="text-lg text-[#26268c] font-semibold">
+                        {subject.name}
+                      </div>
+                      <div className="text-sm mt-1">{subject.detail}</div>
                     </div>
-                    <div className="text-lg text-blue-600 font-semibold">
-                      Name: {subject.name}
+                    <div className="min-h-[0.5rem] grow"></div>
+                    <div className="text-sm mt-1 shrink-0">
+                      <b>{subject.teacher}</b>
                     </div>
-                    <div className="text-sm mt-1">
-                      Teacher: <b>{subject.teacher}</b>
-                    </div>
-                    <div className="text-sm mt-1">{subject.detail}</div>
                   </div>
                 </div>
               </div>
@@ -119,7 +140,7 @@ const FormSubject = () => {
           </p>
         )}
 
-        <div className="h-32" />
+        <div className="h-4" />
       </div>
     </div>
   );

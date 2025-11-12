@@ -102,7 +102,7 @@ const Search = ({ onSearch }) => {
 
   return (
     <div
-      className="relative w-[450px] z-0"
+      className="relative w-[600px] z-20"
       ref={searchRef}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) handleClickAway();
@@ -132,7 +132,7 @@ const Search = ({ onSearch }) => {
             onClick={() => navigate("/addsubject")}
             title="Add Subject"
           >
-            <PlusCircleIcon className="h-6 w-6 text-gray-500" />
+            <PlusCircleIcon className="h-6 w-6 text-purple-100" />
           </button>
         )}
       </form>

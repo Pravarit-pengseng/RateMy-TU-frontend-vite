@@ -31,7 +31,7 @@ function ReviewSub() {
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(true);
-  const [openId, setOpenId] = useState(null);
+  const [opendetail, setOpendetail] = useState(null);
   const [activeTab, setActiveTab] = useState("review");
 
   // --- 2. State สำหรับแก้ไข comment ---
@@ -749,10 +749,8 @@ function ReviewSub() {
     
   };
 
-
-
-  // --- 12. (แก้ไข) handleDeleteQuestion (ให้แสดง Toast) ---
-  const handleDeleteQuestion = async (questionId) => {
+  // handleDeleteQuestion (ให้แสดง Toast)
+  const handleDeleteQuestion = async (questionId, commentId) => {
     if (!user?.token) {
       toast.error("กรุณาเข้าสู่ระบบก่อน");
       return;
@@ -808,6 +806,30 @@ try {
     });
   };
 
+  const bringTotop = () => {
+    // Get the button
+    const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+    // Show button when scrolled down 100px
+    window.onscroll = function () {
+      if (
+        document.body.scrollTop > 100 ||
+        document.documentElement.scrollTop > 100
+      ) {
+        scrollToTopBtn.style.display = "block";
+      } else {
+        scrollToTopBtn.style.display = "none";
+      }
+    };
+
+    // When clicked, scroll to top smoothly
+    scrollToTopBtn.addEventListener("click", () => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  };
 
   const RatingStars = ({ rating, onRatingChange, readOnly = false }) => {
     return (
@@ -846,22 +868,23 @@ try {
       <div className="flex min-h-screen bg-[#2d2f3b]">
         {/* Sidebar */}
         <div
-          className={`bg-[#ffffff] shadow-lg border-r border-gray-200 transition-all duration-300 ${isOpen ? "w-lg" : "w-14"
-            } flex flex-col`}
+          className={`bg-white shadow-lg transition-all duration-300 ${
+            isOpen ? " sm:w-xs md:w-lg h-175  " : "w-14 bg-white/3"
+          } flex flex-col`}
         >
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-3 hover:bg-gray-100 flex items-center justify-end"
+            className="p-3 hover:bg-white/3 flex items-center justify-end"
           >
             {isOpen ? (
-              <ChevronDoubleLeftIcon className="w-6 h-6 text-gray-700" />
+              <ChevronDoubleLeftIcon className="w-6 h-6 text-black" />
             ) : (
-              <ChevronDoubleRightIcon className="w-6 h-6 text-gray-700" />
+              <ChevronDoubleRightIcon className="w-6 h-6 text-white " />
             )}
           </button>
 
           {isOpen && (
-            <div className="p-4 overflow-y-auto w-lg">
+            <div className="p-4 overflow-y-scroll   md:w-lg   sm:w- xs">
               <header className="text-center mb-8">
                 <div className="bg-gray-100 p-4 ">
                   <h2 className="text-xl font-semibold">{course.name}</h2>
@@ -1173,7 +1196,7 @@ try {
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Reviews Section */}
-              <section className="bg-white rounded-lg shadow-lg p-6">
+              <section className="bg-white h-fit rounded-lg shadow-lg pt-6 pl-6 pr-6 pb-1">
                 <h3 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">
                   REVIEW ({reviews.length})
                 </h3>
@@ -1232,7 +1255,10 @@ try {
                                 <div className="flex gap-1">
                                   {/* --- 19. (แก้ไข) onClick ปุ่มแก้ไขรีวิว --- */}
                                   <button
-                                    onClick={() => handleStartEditInSidebar(review)}
+                                    onClick={() => {
+                                      handleStartEditInSidebar(review);
+                                      bringTotop();
+                                    }}
                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                                     title="แก้ไข"
                                   >
@@ -1304,18 +1330,20 @@ try {
 
                               <button
                                 onClick={() =>
-                                  setOpenId(
-                                    openId === review._id ? null : review._id
+                                  setOpendetail(
+                                    opendetail === review._id
+                                      ? null
+                                      : review._id
                                   )
                                 }
                                 className="ml-auto text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded transition-colors"
                                 title={
-                                  openId === review._id
+                                  opendetail === review._id
                                     ? "ซ่อนรายละเอียด"
                                     : "แสดงรายละเอียด"
                                 }
                               >
-                                {openId === review._id ? (
+                                {opendetail === review._id ? (
                                   <ChevronDoubleUpIcon className="h-5 w-5" />
                                 ) : (
                                   <ChevronDoubleDownIcon className="h-5 w-5" />
@@ -1323,36 +1351,36 @@ try {
                               </button>
                             </div>
 
-                            {openId === review._id && (
-                              <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3 animate-fadeIn">
-                                <div className="grid grid-cols-3 gap-3 text-sm">
-                                  <div className="flex flex-col">
-                                    <span className="text-gray-600 font-medium">
+                            {opendetail === review._id && (
+                              <div className="mt-4 p-4 bg-[#eae9ff] rounded-lg space-y-3 animate-fadeIn">
+                                <div className="flex grid-cols-3 justify-between   gap-3 text-sm ">
+                                  <div className="flex flex-col ml-2">
+                                    <span className="text-gray-600 font-medium ml-2">
                                       เซค
                                     </span>
-                                    <span className="text-gray-800">
+                                    <span className="text-gray-800  ">
                                       {review.section}
                                     </span>
                                   </div>
-                                  <div className="flex flex-col">
+                                  <div className="flex flex-col ml-8">
                                     <span className="text-gray-600 font-medium">
                                       ภาคเรียน
                                     </span>
-                                    <span className="text-gray-800">
+                                    <span className="text-gray-800 ml-5">
                                       {review.semester}
                                     </span>
                                   </div>
-                                  <div className="flex flex-col">
+                                  <div className="flex flex-col ml-10">
                                     <span className="text-gray-600 font-medium">
                                       ปีการศึกษา
                                     </span>
-                                    <span className="text-gray-800">
+                                    <span className="text-gray-800 ml-4">
                                       {review.academicYear}
                                     </span>
                                   </div>
                                 </div>
 
-                                <div className="space-y-2 pt-2 border-t border-gray-200">
+                                <div className="space-y-2 pt-2 border-t border-[#c1befc]">
                                   <div className="flex justify-between items-center">
                                     <span className="text-sm text-gray-600">
                                       จำนวนการบ้าน:
@@ -1390,7 +1418,7 @@ try {
                               </div>
                             )}
 
-                            {/* Comments */}
+                            {/* Review Comments */}
                             {(review.comments || []).length > 0 && (
                               <div className="mt-4 space-y-2">
                                 <button
@@ -1574,7 +1602,6 @@ try {
                               </button>
                             </div>
                           </>
-                          {/* )} */}
                         </div>
                       );
                     })
@@ -1583,8 +1610,8 @@ try {
               </section>
 
               {/* Questions Section */}
-              <section className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">
+              <section className="bg-white rounded-lg shadow-lg p-6 h-fit">
+                <h3 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3 ">
                   QUESTION ({questions.length})
                 </h3>
 
@@ -1602,9 +1629,6 @@ try {
                           key={question._id}
                           className="border-b border-gray-200 pb-6 last:border-b-0"
                         >
-                          {/* --- 20. (ลบ) Inline Edit UI --- */}
-                          {/* {editingQuestion?._id === question._id ? ( ... ) : ( ... )} */}
-
                           <>
                             {/* Display Mode */}
                             <div className="flex justify-between items-start mb-3">
