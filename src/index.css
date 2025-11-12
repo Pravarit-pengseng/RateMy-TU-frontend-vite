@@ -1,12 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Kodchasan:wght@200;300;400;500;600;700&display=swap');
 @import "tailwindcss";
+
+/* ตั้งค่า font เริ่มต้นเป็น Kodchasan สำหรับทั้ง project */
+* {
+    font-family: 'Kodchasan', sans-serif;
+}
 
 html, body {
     height: 100%;
     overflow-y: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    font-family: 'Kodchasan', sans-serif;
 }
+
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
     display: none;
+}
+
+/* ยกเว้นโลโก้ RateMyTU ให้ใช้ฟอนต์เดิม */
+.logo-ratemy,
+.font-pixelify {
+    font-family: 'Pixelify Sans', cursive !important;
 }

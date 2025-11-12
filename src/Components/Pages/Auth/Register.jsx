@@ -26,19 +26,19 @@ export default function Register() {
     };
 
     if (!user.studentId || !user.username || !user.password) {
-      toast.error("Please fill in all required fields.");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
 
     register(user)
       .then((res) => {
         toast.success(res.data);
-        if (res.data === "Register success!!") {
+        if (res.data === "เข้าสู่ระบบสำเร็จ") {
           navigate("/login");
         }
       })
       .catch((err) => {
-        toast.error(err?.response?.data || "Register failed");
+        toast.error(err?.response?.data || "ไม่สารมารถเข้าสู่ระบบได้");
       });
   };
 
@@ -96,7 +96,7 @@ export default function Register() {
                   name="studentId"
                   placeholder="Student ID"
                   autoComplete="studentId"
-                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#F5F5F5] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#000000] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
                 />
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function Register() {
                   name="username"
                   placeholder="Username"
                   autoComplete="username"
-                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#F5F5F5] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#000000] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
                 />
               </div>
             </div>
@@ -125,7 +125,7 @@ export default function Register() {
                   placeholder="Password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className="w-full pl-10 pr-10 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#F5F5F5] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
+                  className="w-full pl-10 pr-10 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#000000] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
                 />
                 <button
                   type="button"
@@ -147,7 +147,7 @@ export default function Register() {
               type="submit"
               className="w-full mt-2 mb-3 py-3 rounded-lg text-white text-[1rem] md:text-[1.1rem] font-semibold"
               style={{
-                background: "linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)",
+                background: "linear-gradient(45deg, #26268c 40%, #42a5f5 90%)",
               }}
             >
               Register
@@ -159,7 +159,7 @@ export default function Register() {
                 <Link
                   to="/login"
                   className="font-semibold"
-                  style={{ color: "#9be0fbff" }}
+                  style={{ color: "#f8ad1f" }}
                 >
                   Login
                 </Link>

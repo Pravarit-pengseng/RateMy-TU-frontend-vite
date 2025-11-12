@@ -5,6 +5,9 @@ const API = import.meta.env.VITE_APP_API;
 export const getCurrentProfile = async (authtoken) =>
   await axios.post(`${API}/current-user`, {}, { headers: { authtoken } });
 
+export const getUserProfileByUsername = async (username) =>
+  await axios.get(`${API}/profile/${username}`);
+
 export const updateProfile = async (userId, formData, authtoken) =>
   await axios.put(`${API}/updateProfile/${userId}`, formData, {
     headers: {

@@ -241,30 +241,30 @@ export default function EditProfile() {
 
   const faculties = [
     "วิศวกรรมศาสตร์",
-    "วิทยาศาสตร์",
-    "แพทยศาสตร์",
-    "พยาบาลศาสตร์",
-    "สถาปัตยกรรมศาสตร์",
-    "ศิลปศาสตร์",
-    "พาณิชยศาสตร์และการบัญชี",
-    "นิติศาสตร์",
+    // "วิทยาศาสตร์",
+    // "แพทยศาสตร์",
+    // "พยาบาลศาสตร์",
+    // "สถาปัตยกรรมศาสตร์",
+    // "ศิลปศาสตร์",
+    // "พาณิชยศาสตร์และการบัญชี",
+    // "นิติศาสตร์",
   ];
 
   const majors = [
-    "วิศวกรรมคอมพิวเตอร์",
+    // "วิศวกรรมคอมพิวเตอร์",
     "วิศวกรรมซอฟต์แวร์",
-    "วิทยาการคอมพิวเตอร์",
-    "เทคโนโลยีสารสนเทศ",
-    "วิศวกรรมไฟฟ้า",
-    "วิศวกรรมเครื่องกล",
-    "วิศวกรรมโยธา",
+    // "วิทยาการคอมพิวเตอร์",
+    // "เทคโนโลยีสารสนเทศ",
+    // "วิศวกรรมไฟฟ้า",
+    // "วิศวกรรมเครื่องกล",
+    // "วิศวกรรมโยธา",
   ];
 
   // --- ส่วน JSX ไม่มีการเปลี่ยนแปลง ---
   // (คัดลอกส่วน return (...) จากโค้ดเดิมของคุณมาวางที่นี่)
   return (
     <div className="min-h-screen bg-[#2d3748] pb-12">
-      <div className="max-w-[1200px] mx-auto px-4 py-10">
+      <div className="max-w-[1200px] mx-auto px-4 pt-10">
         <div className="bg-white rounded-[30px] p-10 shadow-2xl">
           <>
             {/* Edit mode */}
@@ -291,7 +291,7 @@ export default function EditProfile() {
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className="w-full  h-full text-gray-400 p-1"
+                      className="w-full h-full text-gray-400 p-1"
                     >
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                     </svg>
@@ -381,7 +381,7 @@ export default function EditProfile() {
                       className={`px-3 py-1 rounded-full text-sm text-white ${
                         profileData.visibilityGpa
                           ? "bg-[#2d3748]"
-                          : "bg-red-500"
+                          : "bg-[#f8ad1f]"
                       }`}
                     >
                       {profileData.visibilityGpa ? "แสดง" : "ไม่แสดง"}
@@ -410,7 +410,7 @@ export default function EditProfile() {
                       className={`px-3 py-1 rounded-full text-sm text-white ${
                         profileData.visibilityFaculty
                           ? "bg-[#2d3748]"
-                          : "bg-red-500"
+                          : "bg-[#f8ad1f]"
                       }`}
                     >
                       {profileData.visibilityFaculty ? "แสดง" : "ไม่แสดง"}
@@ -446,7 +446,7 @@ export default function EditProfile() {
                       className={`px-3 py-1 rounded-full text-sm text-white ${
                         profileData.visibilityMajor
                           ? "bg-[#2d3748]"
-                          : "bg-red-500"
+                          : "bg-[#f8ad1f]"
                       }`}
                     >
                       {profileData.visibilityMajor ? "แสดง" : "ไม่แสดง"}
@@ -525,7 +525,7 @@ export default function EditProfile() {
                   // ไม่ต้อง loadProfile() ตอนยกเลิก
                   // loadProfile(); // เอาออก
                 }}
-                className="bg-gray-400 text-white px-10 py-3 rounded-full text-lg font-medium hover:bg-gray-500 transition"
+                className="bg-[#9897e4] text-white px-10 py-3 rounded-full text-lg font-medium hover:bg-[#8685d5] transition"
                 disabled={compressing} // ⭐️ ปิดปุ่มตอนย่อ
               >
                 ยกเลิก
@@ -533,7 +533,7 @@ export default function EditProfile() {
               <button
                 type="button"
                 onClick={handleSave}
-                className={`bg-[#2d3748] text-white px-10 py-3 rounded-full text-lg font-medium hover:shadow-lg transition ${
+                className={`bg-[#26268c] text-white px-10 py-3 rounded-full text-lg font-medium hover:bg-[#202081] transition ${
                   compressing ? "cursor-not-allowed opacity-50" : ""
                 }`} // ⭐️ ปิดปุ่มตอนย่อ
                 disabled={compressing} // ⭐️ ปิดปุ่มตอนย่อ

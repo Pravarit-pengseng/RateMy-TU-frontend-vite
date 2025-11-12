@@ -28,12 +28,12 @@ export default function Login() {
       password: data.get("password"),
     };
     if (!user.studentId || !user.password) {
-      toast.error("Please fill in all required fields.");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
     login(user)
       .then((res) => {
-        toast.success("Login Success!");
+        toast.success("เข้าสู่ระบบสำเร็จ");
         dispatch(
           loginRedux({
             studentId: res.data.payload.user.studentId,
@@ -45,7 +45,9 @@ export default function Login() {
         localStorage.setItem("token", res.data.token);
         navigate("/");
       })
-      .catch((err) => toast.error(err?.response?.data || "Login failed"));
+      .catch((err) =>
+        toast.error(err?.response?.data || "ไม่สามารถเข้าสู่ระบบได้")
+      );
   };
 
   return (
@@ -128,7 +130,7 @@ export default function Login() {
               type="submit"
               className="w-full mt-2 mb-3 py-3 rounded-lg text-white text-[1rem] md:text-[1.1rem] font-semibold"
               style={{
-                background: "linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)",
+                background: "linear-gradient(45deg, #26268c 40%, #42a5f5 90%)",
               }}
             >
               Login
@@ -140,7 +142,7 @@ export default function Login() {
                 <Link
                   to="/register"
                   className="font-semibold "
-                  style={{ color: "#9be0fbff" }}
+                  style={{ color: "#f8ad1f" }}
                 >
                   Register
                 </Link>

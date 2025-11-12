@@ -1,7 +1,7 @@
 // src/components/ImageUpload.js
 import React, { useState } from 'react';
 // import axios from 'axios';
-import { uploadImage } from '../Function/profile';
+import { uploadImage } from './profile';
 
 function ImageUpload() {
   const [file, setFile] = useState(null);

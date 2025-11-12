@@ -36,7 +36,7 @@ function HomepageUser() {
         <div>
           <div className="bg-[url('/assets/home-bg.png')] bg-no-repeat bg-center bg-cover w-full md:h-[calc(100vh-150px)] flex flex-col items-center justify-center px-5 sm:px-10 sm: h-[calc(50vh-10px)] ">
             <div className="text-center">
-              <h1 className="text-white font-bold mt-1 sm:mt-8 mb-1 sm:mb-8 text-[28px] sm:text-[48px] md:text-[64px] lg:text-[80px] leading-snug">
+              <h1 className="text-white font-bold mt-1 sm:mt-8 mb-1 sm:mb-4  text-[28px] sm:text-[48px] md:text-[64px] lg:text-[80px] leading-snug">
                 Find your <ins>FAVORITE</ins> subject
               </h1>
               <p className="text-white  mb-5 sm:mb-3 text-sm sm:text-base">
@@ -53,7 +53,7 @@ function HomepageUser() {
         {/* Top 5 */}
         <div className="px-3 sm:px-6">
           <hr className="h-[5px] bg-white border-0" />
-          <h2 className="mb-3 font-bold text-white text-left ml-1 mt-5">
+          <h2 className="mb-3 font-bold text-2xl text-white text-left ml-1 mt-5">
             TOP 5 Searched Subject
           </h2>
 
@@ -88,15 +88,16 @@ function HomepageUser() {
                     )}
                     <div className="space-y-1">
                       <div className="text-sm text-gray-600">
-                        Code: {subject.courseCode}
+                        {subject.courseCode}
                       </div>
-                      <div className="text-lg font-bold text-blue-600">
-                        Name: {subject.name}
+                      <div className="text-lg font-bold text-[#26268C]">
+                        {subject.name}
                       </div>
-                      <div className="text-sm">
-                        Teacher: <b>{subject.teacher}</b>
-                      </div>
+
                       <div className="text-sm">{subject.detail}</div>
+                      <div className="text-sm">
+                        <b>{subject.teacher}</b>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -104,7 +105,7 @@ function HomepageUser() {
             </div>
           )}
 
-          <div className="h-32" />
+          <div className="h-10" />
         </div>
       </div>
     </div>
