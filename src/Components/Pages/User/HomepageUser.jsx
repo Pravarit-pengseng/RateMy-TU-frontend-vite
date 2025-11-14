@@ -40,7 +40,7 @@ function HomepageUser() {
                 Find your <ins>FAVORITE</ins> subject
               </h1>
               <p className="text-white  mb-5 sm:mb-3 text-sm sm:text-base">
-                Explore friends’ reviews, ratings, and professors to make
+                Explore friends' reviews, ratings, and professors to make
                 informed academic choices
               </p>
             </div>
