@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import {
-  getCurrentProfile,
-  getUserProfileByUsername,
-} from "../../../Function/profile";
+import { getCurrentProfile, getUserProfileByUsername } from "../../../Function/profile";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_APP_API;
@@ -44,12 +41,7 @@ export default function ViewProfile() {
 
   // โหลด profile
   useEffect(() => {
-    console.log(
-      "🔄 useEffect triggered. username =",
-      username,
-      "| user =",
-      user
-    );
+    console.log("📄 useEffect triggered. username =", username, "| user =", user);
     if (username) {
       console.log("📡 Loading profile by username:", username);
       loadProfile(username);
@@ -113,67 +105,89 @@ export default function ViewProfile() {
   };
 
   return (
-    <div>
-      <div className="min-h-screen bg-[#2d3748] pb-12">
-        <div className="max-w-[1200px] mx-auto px-4 py-10">
-          <div className="bg-white rounded-[30px] p-10 shadow-2xl">
-            <div className="flex flex-col md:flex-row gap-10 mb-8">
-              <div className="flex-shrink-0 mx-auto md:mx-0">
-                <div className="w-[150px] h-[150px] rounded-full border-4 border-[#1E1E2F] overflow-hidden bg-[#e0e7ff] flex items-center justify-center">
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="w-full h-full text-gray-400 p-1"
-                    >
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                    </svg>
-                  )}
-                </div>
-              </div>
+    <div className="h-170.75 bg-[#3a3f4a] flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl">
+        <div className="bg-white rounded-[30px] p-8 md:p-12 shadow-2xl relative">
+          {/* Close button */}
+          <button
+            onClick={() => window.history.back()}
+            className="absolute bottom-1 right-12 px-7 py-1 border-2 border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition-colors text-lg font-medium"
+          >
+            ปิด
+          </button>
 
-              <div className="flex-1 text-center md:text-left">
-                <h2 className="text-4xl font-semibold text-[#1E1E2F] mb-3">
-                  {profileData.username}
-                </h2>
-                <p className="text-gray-600 text-lg">
-                  {profileData.bio || "Bio..."}
-                </p>
-              </div>
+          {/* Profile Image and Username - Centered at top */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-[180px] h-[180px] rounded-full border-4 border-gray-300 overflow-hidden bg-[#e0e7ff] flex items-center justify-center mb-6">
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                </svg>
+              )}
             </div>
+            <h2 className="text-4xl font-medium text-gray-900">
+              {profileData.username || "Username"}
+            </h2>
+          </div>
 
-            <div className="space-y-4">
-              {profileData.visibilityGpa && profileData.gpa !== 0 && (
-                <div className="flex gap-5 py-4 border-b text-lg">
-                  <span className="font-semibold text-[#1E1E2F] min-w-[180px]">
-                    เกรดเฉลี่ย
-                  </span>
-                  <span className="text-gray-600">{profileData.gpa}</span>
+          {/* Main Content Area - Bio on left, Info on right */}
+          <div className="border-2 border-gray-300 rounded-[20px] p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Left Side - Bio */}
+              <div>
+                <h3 className="text-2xl font-normal text-gray-900 mb-4">Bio</h3>
+                <div className="border-2 border-gray-300 rounded-lg p-4 min-h-[150px] bg-gray-50">
+                  <p className="text-gray-700 text-lg whitespace-pre-wrap">
+                    {profileData.bio || "..."}
+                  </p>
                 </div>
-              )}
-              {profileData.visibilityFaculty && profileData.faculty && (
-                <div className="flex gap-5 py-4 border-b text-lg">
-                  <span className="font-semibold text-[#1E1E2F] min-w-[180px]">
-                    คณะที่ศึกษา
-                  </span>
-                  <span className="text-gray-600">{profileData.faculty}</span>
-                </div>
-              )}
-              {profileData.visibilityMajor && profileData.major && (
-                <div className="flex gap-5 py-4 border-b text-lg">
-                  <span className="font-semibold text-[#1E1E2F] min-w-[180px]">
-                    สาขาที่ศึกษา
-                  </span>
-                  <span className="text-gray-600">{profileData.major}</span>
-                </div>
-              )}
+              </div>
+
+              {/* Right Side - Info */}
+              <div className="space-y-6">
+                {/* GPA */}
+                {profileData.visibilityGpa && profileData.gpa !== 0 && (
+                  <div className="border-b-2 border-gray-300 pb-4">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-2xl font-normal text-gray-900">เกรดเฉลี่ย</span>
+                      <span className="text-2xl text-gray-700">{profileData.gpa || "3.33"}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Faculty */}
+                {profileData.visibilityFaculty && profileData.faculty && (
+                  <div className="border-b-2 border-gray-300 pb-4">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-2xl font-normal text-gray-900">คณะที่เรียน</span>
+                      <span className="text-2xl text-gray-700">{profileData.faculty || "คณะวิศวะ"}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Major */}
+                {profileData.visibilityMajor && profileData.major && (
+                  <div className="border-b-2 border-gray-300 pb-4">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-2xl font-normal text-gray-900">สาขาที่เรียน</span>
+                      <span className="text-2xl text-gray-700">{profileData.major || "สาขาซอฟฟ"}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* If all fields are hidden, show a message */}
+                {!profileData.visibilityGpa && !profileData.visibilityFaculty && !profileData.visibilityMajor && (
+                  <div className="text-center text-gray-500 py-8">
+                    <p className="text-xl">ผู้ใช้เลือกไม่แสดงข้อมูลส่วนตัว</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

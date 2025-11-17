@@ -10,8 +10,10 @@ import { ToastContainer } from "react-toastify";
 import FormSubject from "./Components/Pages/Course/FormSubject";
 import Register from "./Components/Pages/Auth/Register";
 import Login from "./Components/Pages/Auth/Login";
-
-
+import Guide from "./Layout/guide";
+import StudyPlan from "./Layout/StudyPlan";
+//admin
+// import HomepageAdmin from "./components/pages/admin/HomepageAdmin";
 
 //user
 import HomepageUser from "./Components/Pages/User/HomepageUser";
@@ -21,7 +23,6 @@ import UserRoute from "./Routes/userRoute";
 //function
 import { login } from "./Store/userSlice";
 import NotFound404 from "./Components/Pages/NotFound404";
-
 
 import EditSubject from "./Components/Pages/Course/EditSubject";
 import AddSubject from "./Components/Pages/Course/AddSubject";
@@ -47,7 +48,7 @@ function App() {
           })
         );
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   return (
@@ -122,6 +123,22 @@ function App() {
               </>
             }
           />
+
+          <Route path="/guide"
+            element={
+              <>
+                <HeaderBar />
+                <Guide />
+              </>
+            } />
+
+          <Route path="/studyplan"
+            element={
+              <>
+                <HeaderBar />
+                <StudyPlan />
+              </>
+            } />
 
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />

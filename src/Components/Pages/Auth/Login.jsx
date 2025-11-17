@@ -45,9 +45,7 @@ export default function Login() {
         localStorage.setItem("token", res.data.token);
         navigate("/");
       })
-      .catch((err) =>
-        toast.error(err?.response?.data || "ไม่สามารถเข้าสู่ระบบได้")
-      );
+      .catch((err) => toast.error(err?.response?.data || "ไม่สามารถเข้าสู่ระบบได้"));
   };
 
   return (

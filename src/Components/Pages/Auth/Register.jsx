@@ -33,7 +33,7 @@ export default function Register() {
     register(user)
       .then((res) => {
         toast.success(res.data);
-        if (res.data === "เข้าสู่ระบบสำเร็จ") {
+        if (res.data === "ลงทะเบียนสำเร็จ") {
           navigate("/login");
         }
       })
@@ -96,7 +96,7 @@ export default function Register() {
                   name="studentId"
                   placeholder="Student ID"
                   autoComplete="studentId"
-                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#000000] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#F5F5F5] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
                 />
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function Register() {
                   name="username"
                   placeholder="Username"
                   autoComplete="username"
-                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#000000] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#F5F5F5] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
                 />
               </div>
             </div>
@@ -125,7 +125,7 @@ export default function Register() {
                   placeholder="Password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className="w-full pl-10 pr-10 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#000000] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
+                  className="w-full pl-10 pr-10 py-3 rounded-lg bg-[#959eafff] shadow-[0_4px_8px_#00000092] text-[#F5F5F5] placeholder-[#4f4f4fff] text-[16px] md:text-[18px] focus:outline-none focus:ring-2 focus:ring-white"
                 />
                 <button
                   type="button"

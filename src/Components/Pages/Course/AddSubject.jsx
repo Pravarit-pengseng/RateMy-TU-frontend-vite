@@ -31,6 +31,24 @@ const AddSubject = () => {
       return;
     }
 
+    // validation
+    if (!formData.courseCode) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    if (!formData.name) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    if (!formData.teacher) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    if (!formData.detail) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+
     try {
       setLoading(true);
       const token = user.token;
@@ -79,7 +97,6 @@ const AddSubject = () => {
                   value={formData.courseCode}
                   onChange={handleChange}
                   placeholder="กรอกรหัสวิชา"
-                  required
                   className="flex-1 border-b-2 border-gray-400 bg-transparent p-2 text-lg focus:outline-none focus:border-indigo-600"
                 />
               </div>
@@ -93,7 +110,6 @@ const AddSubject = () => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="กรอกชื่อวิชา"
-                  required
                   className="flex-1 border-b-2 border-gray-400 bg-transparent p-2 text-lg focus:outline-none focus:border-indigo-600"
                 />
               </div>
@@ -107,7 +123,6 @@ const AddSubject = () => {
                   value={formData.teacher}
                   onChange={handleChange}
                   placeholder="กรอกชื่อผู้สอน"
-                  required
                   className="flex-1 border-b-2 border-gray-400 bg-transparent p-2 text-lg focus:outline-none focus:border-indigo-600"
                 />
               </div>

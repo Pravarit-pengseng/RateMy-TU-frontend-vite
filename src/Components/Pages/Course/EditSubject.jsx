@@ -62,6 +62,24 @@ const EditSubject = () => {
       return;
     }
 
+    // validation
+    if (!formData.courseCode) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    if (!formData.name) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    if (!formData.teacher) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    if (!formData.detail) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+
     try {
       setLoading(true);
       await update(id, formData, token); // send token

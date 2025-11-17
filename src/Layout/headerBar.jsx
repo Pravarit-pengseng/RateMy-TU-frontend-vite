@@ -20,6 +20,8 @@ function HeaderBar() {
   const pages = [
     { title: "Home", to: "/" },
     { title: "Courses", to: "/course" },
+    { title: "Guide", to: "/guide" },
+    { title: "StudyPlan", to: "/studyplan" }
   ];
 
   const authen = [
@@ -53,7 +55,9 @@ function HeaderBar() {
           const data = res.data;
           setUserProfile({
             username: data.username || "",
-            profileImage: data.profileImage ? data.profileImage.url : "",
+            profileImage: data.profileImage
+              ? data.profileImage.url
+              : "",
           });
         } catch (err) {
           console.error("Load user profile error:", err);
@@ -100,11 +104,10 @@ function HeaderBar() {
                 <Link
                   key={i}
                   to={p.to}
-                  className={`text-black ${
-                    active
+                  className={`text-black ${active
                       ? "font-bold underline underline-offset-8 decoration-2"
                       : "hover:opacity-70"
-                  }`}
+                    }`}
                 >
                   {p.title}
                 </Link>
@@ -140,12 +143,7 @@ function HeaderBar() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="w-full h-full text-gray-400 p-1"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                     </svg>
                   )}
@@ -217,39 +215,39 @@ function HeaderBar() {
 
             {user.length === 0
               ? authen.map((a, i) => (
+                <Link
+                  key={i}
+                  to={a.to}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-black/5 rounded"
+                >
+                  {a.icon}
+                  <span>{a.title}</span>
+                </Link>
+              ))
+              : settings.map((s, i) =>
+                s.title === "Logout" ? (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      handlelogout();
+                      setMobileOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-black/5 rounded"
+                  >
+                    {s.title}
+                  </button>
+                ) : (
                   <Link
                     key={i}
-                    to={a.to}
+                    to={s.to}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-black/5 rounded"
+                    className="px-3 py-2 hover:bg-black/5 rounded"
                   >
-                    {a.icon}
-                    <span>{a.title}</span>
+                    {s.title}
                   </Link>
-                ))
-              : settings.map((s, i) =>
-                  s.title === "Logout" ? (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        handlelogout();
-                        setMobileOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-black/5 rounded"
-                    >
-                      {s.title}
-                    </button>
-                  ) : (
-                    <Link
-                      key={i}
-                      to={s.to}
-                      onClick={() => setMobileOpen(false)}
-                      className="px-3 py-2 hover:bg-black/5 rounded"
-                    >
-                      {s.title}
-                    </Link>
-                  )
-                )}
+                )
+              )}
           </div>
         </div>
       )}

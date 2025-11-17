@@ -570,28 +570,40 @@ function ReviewSub() {
 
     // (Validations...)
     if (!newReview.comment.trim()) {
-      toast.error("กรุณาเขียนรีวิว");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
     if (!newReview.sec.trim()) {
-      toast.error("กรุณาระบุเซค");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
     if (!newReview.term) {
-      toast.error("กรุณาเลือกภาคเรียน");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
     if (!newReview.year) {
-      toast.error("กรุณาเลือกปีการศึกษา");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
     if (!newReview.grade) {
-      toast.error("กรุณาเลือกเกรด");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
     if (newReview.rating === 0) {
-      toast.error("กรุณาให้คะแนนดาว");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
+    }
+    if (newReview.homework === 0) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน")
+      return
+    }
+    if (newReview.interest === 0) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน")
+      return
+    }
+    if (newReview.teaching === 0) {
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน")
+      return
     }
 
     try {
@@ -642,11 +654,12 @@ function ReviewSub() {
 
     if (!user?.token) {
       toast.error("กรุณาเข้าสู่ระบบก่อนถามคำถาม");
+      navigate("/login");
       return;
     }
 
     if (!newQuestion.postText.trim()) {
-      toast.error("กรุณาเขียนคำถาม");
+      toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
       return;
     }
 
@@ -1187,9 +1200,9 @@ function ReviewSub() {
                       </h3>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">
+                        {/* <label className="block text-sm font-medium mb-2">
                           เขียนรีวิว...
-                        </label>
+                        </label> */}
                         <textarea
                           value={newReview.comment}
                           onChange={(e) =>
@@ -1200,7 +1213,7 @@ function ReviewSub() {
                           }
                           className="w-full p-3 border border-gray-300 rounded-md h-24 focus:outline-none focus:ring-2 focus:ring-[#26268c]"
                           placeholder="แบ่งปันประสบการณ์ของคุณ..."
-                          required
+                        // required
                         />
                       </div>
 
@@ -1216,7 +1229,7 @@ function ReviewSub() {
                               setNewReview({ ...newReview, sec: e.target.value })
                             }
                             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
+                          // required
                           >
                             <option value="">เลือกเซค</option>
                             <option value="760001">760001</option>
@@ -1234,7 +1247,7 @@ function ReviewSub() {
                               setNewReview({ ...newReview, term: e.target.value })
                             }
                             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
+                          // required
                           >
                             <option value="">เลือกภาคเรียน</option>
                             <option value="1">1</option>
@@ -1252,7 +1265,7 @@ function ReviewSub() {
                               setNewReview({ ...newReview, year: e.target.value })
                             }
                             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
+                          // required
                           >
                             <option value="">เลือกปีการศึกษา</option>
                             <option value="2568">2568</option>
@@ -1276,7 +1289,7 @@ function ReviewSub() {
                               })
                             }
                             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
+                          // required
                           >
                             <option value="">เลือกเกรด</option>
                             <option value="A">A</option>
@@ -1359,7 +1372,7 @@ function ReviewSub() {
                         <div>
                           <label className="block text-sm font-medium mb-2">
                             สัดส่วนคะแนน (ถ้ามี)
-                            <span className="text-gray-500 text-xs ml-1">- ไม่บังคับ</span>
+                            {/* <span className="text-gray-500 text-xs ml-1">- ไม่บังคับ</span> */}
                           </label>
                           <textarea
                             value={newReview.gradeDistribution}
@@ -1431,9 +1444,9 @@ function ReviewSub() {
                       </h3>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">
+                        {/* <label className="block text-sm font-medium mb-2">
                           ถามคำถาม...
-                        </label>
+                        </label> */}
                         {/* --- 16. (แก้ไข) Input เป็น Textarea และใช้ state object --- */}
                         <textarea
                           value={newQuestion.postText}
@@ -1442,7 +1455,7 @@ function ReviewSub() {
                           }
                           placeholder="มีคำถามอะไรเกี่ยวกับวิชานี้?"
                           className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#26268c]"
-                          required
+                        // required
                         />
                       </div>
 
@@ -1513,7 +1526,7 @@ function ReviewSub() {
                     </p>
                   ) : (
                     reviews.map((review) => {
-                      const isOwner = user?.username === review.username;
+                      const isOwner = user?.studentId === review.studentId;
                       const likes = review.like || 0;
                       const dislikes = review.disLike || 0;
                       const userReaction = review.userReaction || null;
@@ -1785,7 +1798,7 @@ function ReviewSub() {
                                     {[...review.comments]
                                       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                                       .map((comment, index) => {
-                                        const isCommentOwner = user?.username === comment.username
+                                        const isCommentOwner = user?.studentId === comment.studentId
 
                                         return (
                                           <div
@@ -1834,7 +1847,7 @@ function ReviewSub() {
                                                 <div className="flex justify-between items-start mb-1">
                                                   <div className="flex items-center gap-2">
                                                     {/* Profile Image */}
-                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0"
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center"
                                                       onClick={() => goToProfile(comment.username)}
                                                     >
                                                       {userProfiles[comment.username] ? (
@@ -1868,15 +1881,26 @@ function ReviewSub() {
                                                         comment.createdAt
                                                       ).toLocaleDateString("th-TH")}
                                                     </span>
-                                                    {isCommentOwner && (
+                                                    {(isCommentOwner || isAdmin) && (
                                                       <div className="flex gap-1">
-                                                        <button
-                                                          onClick={() => handleStartEditReviewComment(comment)}
-                                                          className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
-                                                          title="แก้ไข"
-                                                        >
-                                                          <PencilIcon className="h-3.5 w-3.5" />
-                                                        </button>
+                                                        {isCommentOwner && !isAdmin && (
+                                                          <button
+                                                            onClick={() => handleStartEditReviewComment(comment)}
+                                                            className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                                                            title="แก้ไข"
+                                                          >
+                                                            <PencilIcon className="h-3.5 w-3.5" />
+                                                          </button>
+                                                        )}
+                                                        {isAdmin && (
+                                                          <button
+                                                            onClick={() => handleDeleteReviewComment(comment._id)}
+                                                            className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                                                            title="ลบความคิดเห็น"
+                                                          >
+                                                            <TrashIcon className="h-3.5 w-3.5" />
+                                                          </button>
+                                                        )}
                                                       </div>
                                                     )}
                                                   </div>
@@ -1972,7 +1996,7 @@ function ReviewSub() {
                     [...questions]
                       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                       .map((question) => {
-                        const isOwner = user?.username === question.username;
+                        const isOwner = user?.studentId === question.studentId;
 
                         return (
                           <div
@@ -2078,7 +2102,7 @@ function ReviewSub() {
                                       {[...question.comments]
                                         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                                         .map((comment, index) => {
-                                          const isCommentOwner = user?.username === comment.username
+                                          const isCommentOwner = user?.studentId === comment.studentId
 
                                           return (
                                             <div
@@ -2131,61 +2155,67 @@ function ReviewSub() {
                                                 </div>
                                               ) : (
                                                 <>
-                                                  <div className="flex justify-between items-start mb-1">
-                                                    <div className="flex items-center gap-2">
-                                                      {/* Profile Image */}
-                                                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0"
-                                                        onClick={() => goToProfile(comment.username)}
-                                                      >
-                                                        {userProfiles[comment.username] ? (
-                                                          <img
-                                                            src={userProfiles[comment.username]}
-                                                            alt={comment.username}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                              e.target.onerror = null;
-                                                              e.target.src = "/default-avatar.png";
-                                                            }}
-                                                          />
-                                                        ) : (
-                                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
-                                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                                                          </svg>
-                                                        )}
-                                                      </div>
-                                                      {/* Owner */}
-                                                      <span className={`font-semibold ${isCommentOwner ? "text-blue-600" : "text-black"}`}>
-                                                        {comment.username}
-                                                        {isCommentOwner && (
-                                                          <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                                                            คุณ
-                                                          </span>
-                                                        )}
-                                                      </span>
+                                                   <div className="flex justify-between items-start mb-1">
+                                                  <div className="flex items-center gap-2">
+                                                    {/* Profile Image */}
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center"
+                                                      onClick={() => goToProfile(comment.username)}
+                                                    >
+                                                      {userProfiles[comment.username] ? (
+                                                        <img
+                                                          src={userProfiles[comment.username]}
+                                                          alt={comment.username}
+                                                          className="w-full h-full object-cover"
+                                                          onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "/default-avatar.png";
+                                                          }}
+                                                        />
+                                                      ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
+                                                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                                                        </svg>
+                                                      )}
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                      <span className="text-gray-600 text-xs">
-                                                        {new Date(
-                                                          comment.createdAt
-                                                        ).toLocaleDateString("th-TH")}
-                                                      </span>
+                                                    <span className={`font-semibold ${isCommentOwner ? "text-blue-600" : "text-black"}`}>
+                                                      {comment.username}
                                                       {isCommentOwner && (
-                                                        <div className="flex gap-1">
+                                                        <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                                          คุณ
+                                                        </span>
+                                                      )}
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-gray-600 text-xs">
+                                                      {new Date(
+                                                        comment.createdAt
+                                                      ).toLocaleDateString("th-TH")}
+                                                    </span>
+                                                    {(isCommentOwner || isAdmin) && (
+                                                      <div className="flex gap-1">
+                                                        {isCommentOwner && !isAdmin && (
                                                           <button
-                                                            onClick={() =>
-                                                              handleStartEditQuestionComment(
-                                                                comment
-                                                              )
-                                                            }
+                                                            onClick={() => handleStartEditQuestionComment(comment)}
                                                             className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                                                             title="แก้ไข"
                                                           >
                                                             <PencilIcon className="h-3.5 w-3.5" />
                                                           </button>
-                                                        </div>
-                                                      )}
-                                                    </div>
+                                                        )}
+                                                        {isAdmin && (
+                                                          <button
+                                                            onClick={() => handleDeleteQuestionComment(comment._id)}
+                                                            className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                                                            title="ลบความคิดเห็น"
+                                                          >
+                                                            <TrashIcon className="h-3.5 w-3.5" />
+                                                          </button>
+                                                        )}
+                                                      </div>
+                                                    )}
                                                   </div>
+                                                </div>
                                                   <p className="text-gray-800 text-sm">
                                                     {comment.commentText}
                                                   </p>
