@@ -17,9 +17,10 @@ import { useDispatch } from "react-redux";
 import { updateProfileImg } from "../../../Store/userSlice"; // import action
 // ⭐️ 1. Import ไลบรารีที่ติดตั้ง
 import imageCompression from "browser-image-compression";
+import { useNavigate } from "react-router-dom";
 
 export default function EditProfile() {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const reduxUser = useSelector((state) => state.user.user);
   const [user, setUser] = useState(reduxUser || null);
   const [showPassword, setShowPassword] = useState(false);
@@ -522,6 +523,7 @@ export default function EditProfile() {
               <button
                 type="button"
                 onClick={() => {
+                  navigate(-1)
                   // ไม่ต้อง loadProfile() ตอนยกเลิก
                   // loadProfile(); // เอาออก
                 }}
