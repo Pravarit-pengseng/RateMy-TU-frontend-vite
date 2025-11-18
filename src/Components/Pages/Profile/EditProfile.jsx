@@ -9,13 +9,17 @@ import { toast } from "react-toastify";
 import {
   EyeIcon,
   EyeSlashIcon,
-  PencilIcon,
+  CameraIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
+// import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { updateProfileImg } from "../../../Store/userSlice";
+import { updateProfileImg } from "../../../Store/userSlice"; // import action
+// ⭐️ 1. Import ไลบรารีที่ติดตั้ง
 import imageCompression from "browser-image-compression";
 
 export default function EditProfile() {
+  // const navigate = useNavigate();
   const reduxUser = useSelector((state) => state.user.user);
   const [user, setUser] = useState(reduxUser || null);
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +33,7 @@ export default function EditProfile() {
     faculty: "",
     major: "",
     password: "",
+    // ใช้โครงสร้าง Cloudinary object ที่ถูกต้อง
     profileImage: { url: "", publicId: null },
     visibilityGpa: true,
     visibilityFaculty: true,
@@ -36,15 +41,10 @@ export default function EditProfile() {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  // ⭐️ (Optional) เพิ่ม state สำหรับ loading ตอนย่อรูป
   const [compressing, setCompressing] = useState(false);
 
-  // Edit states for each field
-  const [editingField, setEditingField] = useState({
-    username: false,
-    gpa: false,
-    password: false,
-  });
-
+  // โหลด user จาก localStorage หาก Redux state ไม่มี (ส่วนนี้ OK)
   useEffect(() => {
     if (!reduxUser) {
       const storedUser = localStorage.getItem("user");
@@ -57,251 +57,175 @@ export default function EditProfile() {
     }
   }, [reduxUser]);
 
+  // โหลด profile เมื่อ user พร้อม (ส่วนนี้ OK)
   useEffect(() => {
-    if (user?.token) {
-      loadProfile();
-    }
+    if (user?.token) loadProfile();
   }, [user]);
 
+  // แก้ไข loadProfile ให้รองรับ Cloudinary object
   const loadProfile = async () => {
     try {
       const res = await getCurrentProfile(user.token);
       const data = res.data;
-
-      console.log("Profile data loaded:", data);
-
-      let profileImageData = { url: "", publicId: null };
-      if (typeof data.profileImage === "string") {
-        profileImageData.url = data.profileImage;
-      } else if (data.profileImage && data.profileImage.url) {
-        profileImageData = data.profileImage;
-      }
-
       setProfileData({
-        _id: data._id || "",
+        _id: data._id,
         username: data.username || "",
         studentId: data.studentId || "",
         bio: data.bio || "",
         gpa: data.gpa || "",
         faculty: data.faculty || "",
         major: data.major || "",
-        password: "",
-        profileImage: profileImageData,
+        password: "", // ไม่โหลด password กลับมา
+        // ดึงข้อมูลรูปภาพจาก profileImage object ใน Backend
+        profileImage: data.profileImage || { url: "", publicId: null },
         visibilityGpa: data.visibilityGpa ?? true,
         visibilityFaculty: data.visibilityFaculty ?? true,
         visibilityMajor: data.visibilityMajor ?? true,
       });
 
-      const imageUrl = profileImageData.url || "";
-      setImagePreview(imageUrl);
-      console.log("Profile loaded successfully, userId:", data._id);
+      // ใช้ profileImage.url สำหรับแสดงรูป
+      if (data.profileImage && data.profileImage.url) {
+        setImagePreview(data.profileImage.url);
+      } else {
+        setImagePreview("");
+      }
     } catch (err) {
       console.error("Load profile error:", err);
-      if (err.response?.status === 401) {
-        toast.error("กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
-        setTimeout(() => {
-          localStorage.clear();
-          window.location.href = "/login";
-        }, 1500);
-      } else {
-        toast.error("ไม่สามารถโหลดข้อมูลได้");
-      }
+      toast.error("ไม่สามารถโหลดข้อมูลได้");
     }
   };
 
-  // Validate and format GPA (0.00 - 4.00)
-  const handleGpaChange = (value) => {
-    // Remove non-numeric characters except dot
-    let cleanValue = value.replace(/[^\d.]/g, '');
-
-    // Allow only one dot
-    const parts = cleanValue.split('.');
-    if (parts.length > 2) {
-      cleanValue = parts[0] + '.' + parts.slice(1).join('');
-    }
-
-    // Limit to 2 decimal places
-    if (parts[1]?.length > 2) {
-      cleanValue = parts[0] + '.' + parts[1].substring(0, 2);
-    }
-
-    // Convert to number for validation
-    const numValue = parseFloat(cleanValue);
-
-    // Validate range (0.00 - 4.00)
-    if (cleanValue && !isNaN(numValue)) {
-      if (numValue > 4.00) {
-        toast.warning("เกรดเฉลี่ยต้องอยู่ระหว่าง 2.00 - 4.00");
-        cleanValue = "4.00";
-      } else if (numValue < 0) {
-        cleanValue = "0.00";
-      }
-    }
-
-    setProfileData({ ...profileData, gpa: cleanValue });
-  };
-
-  // Toggle edit mode for a field
-  const toggleEditField = (field) => {
-    setEditingField({
-      ...editingField,
-      [field]: !editingField[field],
-    });
-  };
-
+  // ⭐️ 2. แก้ไข handleImageChange ให้มีการย่อขนาด
   const handleImageChange = async (e) => {
+    // เปลี่ยนเป็น async
     const file = e.target.files[0];
-    if (file) {
-      try {
-        setCompressing(true);
-        const options = {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 800,
-          useWebWorker: true,
-        };
-        const compressedFile = await imageCompression(file, options);
-        setImageFile(compressedFile);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(compressedFile);
-      } catch (error) {
-        console.error("Image compression error:", error);
-        toast.error("เกิดข้อผิดพลาดในการย่อขนาดรูป");
-      } finally {
-        setCompressing(false);
-      }
+    if (!file) return;
+
+    // (Optional) แสดง loading
+    setCompressing(true);
+    setImagePreview(""); // เคลียร์ preview เก่า
+    setImageFile(null); // เคลียร์ file เก่า
+
+    console.log(`Original file size: ${file.size / 1024 / 1024} MB`);
+
+    // --- ส่วนการย่อขนาด ---
+    const options = {
+      maxSizeMB: 1, // กำหนดขนาดสูงสุด (เช่น 1MB)
+      maxWidthOrHeight: 1024, // กำหนดความกว้างหรือสูงสูงสุด (เช่น 1024px)
+      useWebWorker: true, // ใช้ Web Worker เพื่อประสิทธิภาพ (แนะนำ)
+      // คุณสามารถปรับ options อื่นๆ ได้ตามต้องการ ดูได้จากเอกสารของไลบรารี
+    };
+
+    try {
+      const compressedFile = await imageCompression(file, options);
+      console.log(
+        `Compressed file size: ${compressedFile.size / 1024 / 1024} MB`
+      );
+
+      // ⭐️ ใช้ไฟล์ที่ถูกย่อแล้ว (compressedFile) ไปใส่ใน state
+      setImageFile(compressedFile);
+
+      // สร้าง Preview จากไฟล์ที่ย่อแล้ว
+      const reader = new FileReader();
+      reader.onload = (event) => setImagePreview(event.target.result);
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error("Image compression error:", error);
+      toast.error("ไม่สามารถย่อขนาดรูปภาพได้");
+      // ถ้าการย่อล้มเหลว อาจจะใช้ไฟล์ต้นฉบับแทน (ถ้าต้องการ)
+      // setImageFile(file);
+      // const reader = new FileReader();
+      // reader.onload = (event) => setImagePreview(event.target.result);
+      // reader.readAsDataURL(file);
+    } finally {
+      setCompressing(false); // ซ่อน loading
     }
+    // --- สิ้นสุดส่วนการย่อขนาด ---
   };
 
+  // แก้ไข handleRemoveImage ให้รองรับ Cloudinary object
   const handleRemoveImage = async () => {
-    if (profileData.profileImage?.publicId) {
-      try {
-        // Use correct API signature: removeProfileImage(userId, authtoken)
-        await removeProfileImage(profileData._id, user.token);
-        setImagePreview("");
-        setImageFile(null);
-        setProfileData({
-          ...profileData,
-          profileImage: { url: "", publicId: null },
-        });
-        dispatch(updateProfileImg(""));
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
-        toast.success("ลบรูปภาพสำเร็จ");
-      } catch (err) {
-        console.error("Remove image error:", err);
-        toast.error("ไม่สามารถลบรูปภาพได้");
-      }
-    } else {
+    try {
+      const res = await removeProfileImage(profileData._id, user.token);
+      const updatedUser = res.data; // รับข้อมูล user ที่อัปเดตแล้วกลับมา
+
       setImagePreview("");
       setImageFile(null);
+
+      // อัปเดต state profileData ให้ profileImage เป็น Object ว่าง/default
+      setProfileData({
+        ...profileData, // ใช้ profileData เดิมสำหรับ field อื่นๆ
+        profileImage: updatedUser.profileImage || { url: "", publicId: null }, // อัปเดตเฉพาะ profileImage
+      });
+      // อัปเดต Redux state ด้วย URL ว่าง
+      dispatch(updateProfileImg(""));
+      setTimeout(() => {
+        window.location.reload();
+      }, 2500);
+      toast.success("ลบรูปภาพสำเร็จ");
+    } catch (err) {
+      console.error("Remove image error:", err);
+      toast.error("ไม่สามารถลบรูปภาพได้");
     }
   };
 
-  const handleUpdateProfile = async () => {
+  // แก้ไข handleSave ทั้งหมด (ไม่ต้องแก้ส่วนนี้แล้ว เพราะใช้ imageFile ที่ย่อแล้ว)
+  const handleSave = async () => {
     try {
-      // Validate GPA before submit
-      if (profileData.gpa) {
-        const gpaNum = parseFloat(profileData.gpa);
-        if (isNaN(gpaNum) || gpaNum < 2.00 || gpaNum > 4.00) {
-          toast.warning("เกรดเฉลี่ยต้องอยู่ระหว่าง 2.00 - 4.00");
-          return;
-        }
-      }
-
-      // Validate required fields
-      if (!profileData.username.trim()) {
-        toast.warning("โปรดกรอกข้อมูลให้ครบถ้วน");
-        return;
-      }
-
-      if (!profileData._id) {
-        toast.error("ไม่พบข้อมูลผู้ใช้");
-        return;
-      }
-
       const formData = new FormData();
-      formData.append("username", profileData.username);
-      formData.append("bio", profileData.bio);
-      formData.append("gpa", profileData.gpa);
-      formData.append("faculty", profileData.faculty);
-      formData.append("major", profileData.major);
-      formData.append("visibilityGpa", profileData.visibilityGpa);
-      formData.append("visibilityFaculty", profileData.visibilityFaculty);
-      formData.append("visibilityMajor", profileData.visibilityMajor);
+      formData.append("username", profileData.username || "");
+      formData.append("bio", profileData.bio || "");
+      formData.append("gpa", profileData.gpa || "");
+      formData.append("faculty", profileData.faculty || "");
+      formData.append("major", profileData.major || "");
+      formData.append("visibilityGpa", profileData.visibilityGpa ?? true);
+      formData.append(
+        "visibilityFaculty",
+        profileData.visibilityFaculty ?? true
+      );
+      formData.append("visibilityMajor", profileData.visibilityMajor ?? true);
 
-      if (profileData.password && profileData.password.trim()) {
+      if (profileData.password) {
         formData.append("password", profileData.password);
       }
 
+      // ⭐️ ส่วนนี้จะใช้ imageFile ที่ถูกย่อขนาดแล้วโดยอัตโนมัติ
       if (imageFile) {
+        // 'profileImage' (มี 'e') ต้องตรงกับที่ multer ใน Backend ใช้
         formData.append("profileImage", imageFile);
       }
 
-      console.log("Sending update request with userId:", profileData._id);
-
-      // Use the correct API signature: updateProfile(userId, formData, authtoken)
+      // เรียก API updateProfile และ "รอ" (await) รับข้อมูลที่อัปเดตแล้วกลับมา
       const res = await updateProfile(profileData._id, formData, user.token);
-      console.log("Update response:", res);
-
-      const updatedUser = res.data;
-
-      toast.success("บันทึกข้อมูลสำเร็จ");
-      setImageFile(null);
-
-      setProfileData({
-        ...updatedUser,
-        password: "", // Clear password field after update
-        profileImage: updatedUser.profileImage || { url: "", publicId: null },
-      });
-
-      // Reset editing states
-      setEditingField({
-        username: false,
-        gpa: false,
-        password: false,
-      });
-
-      if (updatedUser.profileImage && updatedUser.profileImage.url) {
-        const newImageURL = updatedUser.profileImage.url;
-        setImagePreview(newImageURL);
-        dispatch(updateProfileImg(newImageURL));
-      } else {
-        setImagePreview("");
-        dispatch(updateProfileImg(""));
-      }
-
-      // Update localStorage
-      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-      localStorage.setItem("user", JSON.stringify({
-        ...storedUser,
-        username: updatedUser.username,
-        gpa: updatedUser.gpa,
-        faculty: updatedUser.faculty,
-        major: updatedUser.major,
-        bio: updatedUser.bio,
-        profileImage: updatedUser.profileImage,
-      }));
-
+      const updatedUser = res.data; // ข้อมูล user ใหม่ (ที่มี Cloudinary URL)
+      console.log("UPDATED DATA: ", updatedUser);
       setTimeout(() => {
         window.location.reload();
       }, 5000);
+      toast.success("บันทึกข้อมูลสำเร็จ");
+
+      setImageFile(null); // เคลียร์ไฟล์ที่เลือกไว้
+
+      // อัปเดต state หลัก (ข้อมูลโปรไฟล์) ทันทีจาก response
+      setProfileData({
+        ...updatedUser, // ใช้ข้อมูลใหม่ทั้งหมดจาก backend
+        // ตรวจสอบให้แน่ใจว่า profileImage เป็น object ที่ถูกต้อง
+        profileImage: updatedUser.profileImage || { url: "", publicId: null },
+      });
+
+      // อัปเดต Redux (รูปที่ Header) และ Image Preview ทันที
+      if (updatedUser.profileImage && updatedUser.profileImage.url) {
+        const newImageURL = updatedUser.profileImage.url;
+        setImagePreview(newImageURL); // อัปเดต preview
+        dispatch(updateProfileImg(newImageURL)); // อัปเดต Redux
+      } else {
+        // กรณีไม่มีรูป หรือลบรูป
+        setImagePreview("");
+        dispatch(updateProfileImg(""));
+      }
     } catch (err) {
       console.error("Update error:", err);
-      if (err.response?.status === 401) {
-        toast.error("กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
-        setTimeout(() => {
-          localStorage.clear();
-          window.location.href = "/login";
-        }, 2000);
-      } else if (err.response?.data?.message) {
-        toast.error(err.response.data.message);
-      } else {
-        toast.error("ไม่สามารถบันทึกข้อมูลได้");
-      }
+      toast.error("ไม่สามารถบันทึกข้อมูลได้");
     }
   };
 
@@ -310,268 +234,314 @@ export default function EditProfile() {
       ...profileData,
       [`visibility${field.charAt(0).toUpperCase() + field.slice(1)}`]:
         !profileData[
-        `visibility${field.charAt(0).toUpperCase() + field.slice(1)}`
+          `visibility${field.charAt(0).toUpperCase() + field.slice(1)}`
         ],
     });
   };
 
   const faculties = [
     "วิศวกรรมศาสตร์",
+    // "วิทยาศาสตร์",
+    // "แพทยศาสตร์",
+    // "พยาบาลศาสตร์",
+    // "สถาปัตยกรรมศาสตร์",
+    // "ศิลปศาสตร์",
+    // "พาณิชยศาสตร์และการบัญชี",
+    // "นิติศาสตร์",
   ];
 
   const majors = [
+    // "วิศวกรรมคอมพิวเตอร์",
     "วิศวกรรมซอฟต์แวร์",
+    // "วิทยาการคอมพิวเตอร์",
+    // "เทคโนโลยีสารสนเทศ",
+    // "วิศวกรรมไฟฟ้า",
+    // "วิศวกรรมเครื่องกล",
+    // "วิศวกรรมโยธา",
   ];
 
+  // --- ส่วน JSX ไม่มีการเปลี่ยนแปลง ---
+  // (คัดลอกส่วน return (...) จากโค้ดเดิมของคุณมาวางที่นี่)
   return (
-    <div className="h-170.75 bg-[#3a3f4a] flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl">
-        <div className="bg-white rounded-[30px] p-8 md:p-12 shadow-2xl relative">
-          {/* Confirm button */}
-          <button
-            onClick={handleUpdateProfile}
-            className="absolute bottom-13 right-16 px-7 py-1 border-2 border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition-colors text-lg font-medium"
-          >
-            ยืนยัน
-          </button>
-
-          {/* Profile Image - Centered at top */}
-          <div className="flex flex-col items-center mb-6">
-            <div className="relative">
-              <div
-                className="w-[180px] h-[180px] rounded-full border-4 border-gray-300 overflow-hidden bg-[#e0e7ff] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() =>
-                  !compressing && document.getElementById("avatarInput").click()
-                }
-              >
-                {compressing ? (
-                  <div className="text-gray-500 text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-2"></div>
-                    <p className="text-sm">กำลังโหลด...</p>
-                  </div>
-                ) : imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-400 p-1">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                  </svg>
-                )}
-              </div>
-              <input
-                id="avatarInput"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-                disabled={compressing}
-              />
-              {imagePreview && (
-                <button
-                  onClick={handleRemoveImage}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                  title="ลบรูปภาพ"
+    <div className="min-h-screen bg-[#2d3748] pb-12">
+      <div className="max-w-[1200px] mx-auto px-4 pt-10">
+        <div className="bg-white rounded-[30px] p-10 shadow-2xl">
+          <>
+            {/* Edit mode */}
+            <div className="flex flex-col items-center mb-8">
+              <div className="relative">
+                <div
+                  className="w-[150px] h-[150px] rounded-full border-4 border-[#1E1E2F] overflow-hidden bg-[#e0e7ff] flex items-center justify-center cursor-pointer"
+                  onClick={
+                    () =>
+                      !compressing &&
+                      document.getElementById("avatarInput").click() // ⭐️ ป้องกันการคลิกตอนกำลังย่อ
+                  }
                 >
-                  ×
+                  {compressing ? ( // ⭐️ แสดง loading ตอนย่อ
+                    <div className="text-gray-500">Compressing...</div>
+                  ) : imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="w-full h-full text-gray-400 p-1"
+                    >
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                    </svg>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={
+                    () =>
+                      !compressing &&
+                      document.getElementById("avatarInput").click() // ⭐️ ป้องกันการคลิกตอนกำลังย่อ
+                  }
+                  className={`absolute bottom-2 right-2 bg-[#1E1E2F] text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#2d3748] ${
+                    compressing ? "cursor-not-allowed opacity-50" : ""
+                  }`} // ⭐️ ปิดปุ่มตอนย่อ
+                  disabled={compressing} // ⭐️ ปิดปุ่มตอนย่อ
+                >
+                  <CameraIcon className="w-5 h-5" />
                 </button>
+                {imagePreview &&
+                  !compressing && ( // ⭐️ ซ่อนปุ่มลบตอนย่อ
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-0 right-0 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600"
+                    >
+                      <XMarkIcon className="w-5 h-5" />
+                    </button>
+                  )}
+                <input
+                  type="file"
+                  id="avatarInput"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                  disabled={compressing} // ⭐️ ปิด input ตอนย่อ
+                />
+              </div>
+              {compressing && (
+                <p className="text-sm text-gray-500 mt-2">
+                  กำลังย่อขนาดรูปภาพ...
+                </p>
               )}
             </div>
-            {/* <p className="text-sm text-gray-500 mt-2">คลิกเพื่อเปลี่ยนรูปโปรไฟล์</p> */}
-          </div>
 
-          {/* Main Content Area */}
-          <div className="border-2 border-gray-300 rounded-[20px] p-4">
+            {/* ... (Edit Mode JSX inputs - เหมือนเดิม) ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Left Side - Form Fields */}
-              <div className="space-y-4">
-                {/* Username */}
-                <div className="flex items-center justify-between border-b-2 border-gray-200 pb-2">
-                  <span className="text-xl text-gray-900 font-normal">Username</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={profileData.username}
-                      onChange={(e) =>
-                        setProfileData({ ...profileData, username: e.target.value })
-                      }
-                      disabled={!editingField.username}
-                      className={`text-xl text-right border-none focus:outline-none bg-transparent ${editingField.username ? 'border-b border-gray-400' : ''
-                        }`}
-                      placeholder="ชื่อผู้ใช้"
-                    />
-                    <button
-                      onClick={() => toggleEditField('username')}
-                      className={`text-gray-600 hover:text-gray-900 transition-colors ${editingField.username ? 'text-blue-600' : ''
-                        }`}
-                      title={editingField.username ? 'บันทึก' : 'แก้ไข'}
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-                  </div>
+              <div className="border-2 border-gray-200 rounded-2xl p-6 space-y-5">
+                <div>
+                  <label className="font-semibold text-[#1E1E2F] block mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.username}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        username: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#1E1E2F]"
+                    placeholder="ชื่อผู้ใช้"
+                  />
                 </div>
 
-                {/* Student ID */}
-                <div className="flex items-center justify-between border-b-2 border-gray-200 pb-2">
-                  <span className="text-xl text-gray-900 font-normal">รหัสนักศึกษา</span>
-                  <span className="text-xl text-gray-700">{profileData.studentId}</span>
+                <div>
+                  <label className="font-semibold text-[#1E1E2F] block mb-2">
+                    รหัสนักศึกษา
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.studentId}
+                    disabled
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-100 cursor-not-allowed"
+                  />
                 </div>
 
-                {/* GPA */}
-                <div className="flex items-center justify-between border-b-2 border-gray-200 pb-2">
-                  <span className="text-xl text-gray-900 font-normal">เกรดเฉลี่ย</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={profileData.gpa}
-                      onChange={(e) => handleGpaChange(e.target.value)}
-                      disabled={!editingField.gpa}
-                      maxLength="4"
-                      className={`w-24 text-xl text-right border-none focus:outline-none bg-transparent ${editingField.gpa ? 'border-b border-gray-400' : ''
-                        }`}
-                      placeholder="0.00"
-                    />
+                <div>
+                  <label className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-[#1E1E2F]">
+                      เกรดเฉลี่ย
+                    </span>
                     <button
+                      type="button"
                       onClick={() => toggleVisibility("gpa")}
-                      className={`px-4 py-1 rounded-full text-sm text-white transition-colors ${profileData.visibilityGpa ? "bg-[#2d3748]" : "bg-[#f8ad1f]"
-                        }`}
-                      title={profileData.visibilityGpa ? 'กำลังแสดง' : 'กำลังซ่อน'}
+                      className={`px-3 py-1 rounded-full text-sm text-white ${
+                        profileData.visibilityGpa
+                          ? "bg-[#2d3748]"
+                          : "bg-[#f8ad1f]"
+                      }`}
                     >
-                      แสดง
+                      {profileData.visibilityGpa ? "แสดง" : "ไม่แสดง"}
                     </button>
-                    <button
-                      onClick={() => toggleEditField('gpa')}
-                      className={`text-gray-600 hover:text-gray-900 transition-colors ${editingField.gpa ? 'text-blue-600' : ''
-                        }`}
-                      title={editingField.gpa ? 'บันทึก' : 'แก้ไข'}
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-                  </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.gpa}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, gpa: e.target.value })
+                    }
+                    maxLength="4"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#1E1E2F]"
+                    placeholder="0.00"
+                  />
                 </div>
 
-                {/* Faculty */}
-                <div className="flex items-center justify-between border-b-2 border-gray-200 pb-2">
-                  <span className="text-xl text-gray-900 font-normal">คณะที่ศึกษา</span>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={profileData.faculty}
-                      onChange={(e) =>
-                        setProfileData({ ...profileData, faculty: e.target.value })
-                      }
-                      className="text-lg border-none focus:outline-none bg-transparent cursor-pointer hover:bg-gray-50 rounded px-2 py-1 text-center"
-                    >
-                      <option value="">เลือกคณะ</option>
-                      {faculties.map((f) => (
-                        <option key={f} value={f}>
-                          {f}
-                        </option>
-                      ))}
-                    </select>
+                <div>
+                  <label className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-[#1E1E2F]">
+                      คณะที่ศึกษา
+                    </span>
                     <button
+                      type="button"
                       onClick={() => toggleVisibility("faculty")}
-                      className={`px-4 py-1 rounded-full text-sm text-white transition-colors ${profileData.visibilityFaculty ? "bg-[#2d3748]" : "bg-[#f8ad1f]"
-                        }`}
-                      title={profileData.visibilityFaculty ? 'กำลังแสดง' : 'กำลังซ่อน'}
+                      className={`px-3 py-1 rounded-full text-sm text-white ${
+                        profileData.visibilityFaculty
+                          ? "bg-[#2d3748]"
+                          : "bg-[#f8ad1f]"
+                      }`}
                     >
-                      แสดง
+                      {profileData.visibilityFaculty ? "แสดง" : "ไม่แสดง"}
                     </button>
-                  </div>
+                  </label>
+                  <select
+                    value={profileData.faculty}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        faculty: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#1E1E2F]"
+                  >
+                    <option value="">เลือกคณะ</option>
+                    {faculties.map((f) => (
+                      <option key={f} value={f}>
+                        {f}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Major */}
-                <div className="flex items-center justify-between border-b-2 border-gray-200 pb-2">
-                  <span className="text-xl text-gray-900 font-normal">สาขาที่ศึกษา</span>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={profileData.major}
-                      onChange={(e) =>
-                        setProfileData({ ...profileData, major: e.target.value })
-                      }
-                      className="text-lg text-center border-none focus:outline-none bg-transparent cursor-pointer hover:bg-gray-50 rounded px-2 py-1"
-                    >
-                      <option value="">เลือกสาขา</option>
-                      {majors.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
+                <div>
+                  <label className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-[#1E1E2F]">
+                      สาขาที่ศึกษา
+                    </span>
                     <button
+                      type="button"
                       onClick={() => toggleVisibility("major")}
-                      className={`px-4 py-1 rounded-full text-sm text-white transition-colors ${profileData.visibilityMajor ? "bg-[#2d3748]" : "bg-[#f8ad1f]"
-                        }`}
-                      title={profileData.visibilityMajor ? 'กำลังแสดง' : 'กำลังซ่อน'}
+                      className={`px-3 py-1 rounded-full text-sm text-white ${
+                        profileData.visibilityMajor
+                          ? "bg-[#2d3748]"
+                          : "bg-[#f8ad1f]"
+                      }`}
                     >
-                      แสดง
+                      {profileData.visibilityMajor ? "แสดง" : "ไม่แสดง"}
                     </button>
-                  </div>
+                  </label>
+                  <select
+                    value={profileData.major}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        major: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#1E1E2F]"
+                  >
+                    <option value="">เลือกสาขา</option>
+                    {majors.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Password */}
-                <div className="flex items-center justify-between border-b-2 border-gray-200 pb-2">
-                  <span className="text-xl text-gray-900 font-normal">รหัสผ่าน</span>
-                  <div className="flex items-center gap-2">
+                <div>
+                  <label className="font-semibold text-[#1E1E2F] block mb-2">
+                    รหัสผ่าน
+                  </label>
+                  <div className="flex gap-2">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={profileData.password}
                       onChange={(e) =>
-                        setProfileData({ ...profileData, password: e.target.value })
+                        setProfileData({
+                          ...profileData,
+                          password: e.target.value,
+                        })
                       }
-                      disabled={!editingField.password}
-                      className={`w-32 text-xl text-right border-none focus:outline-none bg-transparent ${editingField.password ? 'border-b border-gray-400' : ''
-                        }`}
-                      placeholder="XXXXXX"
+                      className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#1E1E2F]"
+                      placeholder="ใส่รหัสผ่านใหม่ (ถ้าต้องการเปลี่ยน)"
                     />
                     <button
+                      type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-gray-600 hover:text-gray-900 transition-colors"
-                      title={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                      className="px-3 text-[#2d3748]"
                     >
                       {showPassword ? (
-                        <EyeSlashIcon className="w-5 h-5" />
+                        <EyeSlashIcon className="w-6 h-6" />
                       ) : (
-                        <EyeIcon className="w-5 h-5" />
+                        <EyeIcon className="w-6 h-6" />
                       )}
-                    </button>
-                    <button
-                      onClick={() => toggleEditField('password')}
-                      className={`text-gray-600 hover:text-gray-900 transition-colors ${editingField.password ? 'text-blue-600' : ''
-                        }`}
-                      title={editingField.password ? 'บันทึก' : 'แก้ไข'}
-                    >
-                      <PencilIcon className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Right Side - Bio */}
-              <div>
-                <h3 className="text-2xl font-normal text-gray-900 mb-4">Bio</h3>
+              <div className="border-2 border-gray-200 rounded-2xl p-6">
+                <label className="font-semibold text-[#1E1E2F] block mb-2">
+                  Bio
+                </label>
                 <textarea
                   value={profileData.bio}
                   onChange={(e) =>
                     setProfileData({ ...profileData, bio: e.target.value })
                   }
-                  className="w-full h-64 border-2 border-gray-300 rounded-lg p-4 text-lg resize-none focus:outline-none focus:border-gray-400 transition-colors"
-                  placeholder="เขียนบางอย่างเกี่ยวกับตัวคุณ..."
-                  maxLength="500"
+                  className="w-full h-[calc(100%-40px)] min-h-[400px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#1E1E2F] resize-none"
+                  placeholder="เขียนแนะนำตัวเอง..."
                 />
-                <p className="relative bottom-9 text-sm text-gray-500 mt-1 text-right pr-3">
-                  {profileData.bio.length}/500
-                </p>
               </div>
             </div>
-          </div>
 
-          {/* Info text
-          <div className="mt-4 text-center text-sm text-gray-500">
-            <p>💡 คลิกไอคอนปากกาเพื่อแก้ไขข้อมูล</p>
-            <p>📊 เกรดเฉลี่ยต้องอยู่ระหว่าง 0.00 - 4.00</p>
-          </div> */}
+            <div className="flex justify-end gap-3 mt-8">
+              <button
+                type="button"
+                onClick={() => {
+                  // ไม่ต้อง loadProfile() ตอนยกเลิก
+                  // loadProfile(); // เอาออก
+                }}
+                className="bg-[#9897e4] text-white px-10 py-3 rounded-full text-lg font-medium hover:bg-[#8685d5] transition"
+                disabled={compressing} // ⭐️ ปิดปุ่มตอนย่อ
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className={`bg-[#26268c] text-white px-10 py-3 rounded-full text-lg font-medium hover:bg-[#202081] transition ${
+                  compressing ? "cursor-not-allowed opacity-50" : ""
+                }`} // ⭐️ ปิดปุ่มตอนย่อ
+                disabled={compressing} // ⭐️ ปิดปุ่มตอนย่อ
+              >
+                บันทึก
+              </button>
+            </div>
+          </>
         </div>
       </div>
     </div>
