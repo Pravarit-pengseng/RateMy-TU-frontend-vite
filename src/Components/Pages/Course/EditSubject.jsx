@@ -100,8 +100,6 @@ const EditSubject = () => {
       return;
     }
 
-    const confirmed = window.confirm("คุณแน่ใจหรือไม่ที่จะลบรายวิชานี้?");
-    if (!confirmed) return;
 
     try {
       setLoading(true);
